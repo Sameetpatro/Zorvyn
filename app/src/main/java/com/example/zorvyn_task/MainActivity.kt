@@ -6,8 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.zorvyn_task.data.local.GoalPreferences
 import com.example.zorvyn_task.data.local.TransactionDatabase
+import com.example.zorvyn_task.data.local.UserPreferences
 import com.example.zorvyn_task.data.repository.GoalRepository
 import com.example.zorvyn_task.data.repository.TransactionRepository
+import com.example.zorvyn_task.data.repository.UserRepository
 import com.example.zorvyn_task.ui.navigation.AppNavigation
 import com.example.zorvyn_task.ui.theme.ZorvynTaskTheme
 
@@ -22,6 +24,10 @@ class MainActivity : ComponentActivity() {
         GoalRepository(GoalPreferences(applicationContext))
     }
 
+    private val userRepository by lazy {
+        UserRepository(UserPreferences(applicationContext))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -29,7 +35,8 @@ class MainActivity : ComponentActivity() {
             ZorvynTaskTheme {
                 AppNavigation(
                     transactionRepository = transactionRepository,
-                    goalRepository = goalRepository
+                    goalRepository = goalRepository,
+                    userRepository = userRepository
                 )
             }
         }

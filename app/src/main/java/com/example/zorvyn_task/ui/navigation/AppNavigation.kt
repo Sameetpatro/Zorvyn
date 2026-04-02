@@ -5,10 +5,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.zorvyn_task.data.local.GoalPreferences
 import com.example.zorvyn_task.data.repository.GoalRepository
 import com.example.zorvyn_task.data.repository.TransactionRepository
+import com.example.zorvyn_task.data.repository.UserRepository
 import com.example.zorvyn_task.ui.addtransaction.AddTransactionScreen
+import com.example.zorvyn_task.ui.addtransaction.AddTransactionViewModel
+import com.example.zorvyn_task.ui.auth.AuthScreen
+import com.example.zorvyn_task.ui.auth.AuthViewModel
 import com.example.zorvyn_task.ui.goal.GoalViewModel
 import com.example.zorvyn_task.ui.home.HomeScreen
 import com.example.zorvyn_task.ui.home.HomeViewModel
@@ -16,6 +19,7 @@ import com.example.zorvyn_task.ui.insights.InsightsScreen
 import com.example.zorvyn_task.ui.insights.InsightsViewModel
 
 object Routes {
+    const val AUTH = "auth"
     const val HOME = "home"
     const val ADD_TRANSACTION = "add_transaction"
     const val INSIGHTS = "insights"
@@ -24,11 +28,26 @@ object Routes {
 @Composable
 fun AppNavigation(
     transactionRepository: TransactionRepository,
-    goalRepository: GoalRepository
+    goalRepository: GoalRepository,
+    userRepository: UserRepository
 ) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Routes.HOME) {
+    NavHost(navController = navController, startDestination = Routes.AUTH) {
+
+        composable(Routes.AUTH) {
+            val authViewModel: AuthViewModel = viewModel(
+                factory = AuthViewModel.Factory(userRepository)
+            )
+            AuthScreen(
+                viewModel = authViewModel,
+                onAuthSuccess = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.AUTH) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(Routes.HOME) {
             val homeViewModel: HomeViewModel = viewModel(
@@ -46,7 +65,13 @@ fun AppNavigation(
         }
 
         composable(Routes.ADD_TRANSACTION) {
-            AddTransactionScreen(onNavigateBack = { navController.popBackStack() })
+            val addViewModel: AddTransactionViewModel = viewModel(
+                factory = AddTransactionViewModel.Factory(transactionRepository)
+            )
+            AddTransactionScreen(
+                viewModel = addViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Routes.INSIGHTS) {
