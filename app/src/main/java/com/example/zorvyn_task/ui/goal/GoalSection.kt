@@ -17,11 +17,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.zorvyn_task.ui.components.GlassCard
-import com.example.zorvyn_task.ui.theme.*
+import com.example.zorvyn_task.ui.theme.LocalAppColors
 
 @Composable
 fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
+    val colors = LocalAppColors.current
 
     GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
         Row(
@@ -32,8 +33,7 @@ fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
             Text(
                 "Daily Goal",
                 style = MaterialTheme.typography.labelMedium.copy(
-                    color = TextSecondary,
-                    letterSpacing = 1.sp
+                    color = colors.textSecondary, letterSpacing = 1.sp
                 )
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -41,14 +41,14 @@ fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
                     modifier = Modifier
                         .size(8.dp)
                         .background(
-                            if (state.limitSet && state.isWithinLimit) AccentGreen else AccentRed,
+                            if (state.limitSet && state.isWithinLimit) colors.accentGreen else colors.accentRed,
                             CircleShape
                         )
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     "🔥 ${state.streakCount} day streak",
-                    style = MaterialTheme.typography.labelMedium.copy(color = TextSecondary)
+                    style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary)
                 )
             }
         }
@@ -56,13 +56,10 @@ fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
 
         if (!state.limitSet) {
-            TextButton(
-                onClick = { showDialog = true },
-                contentPadding = PaddingValues(0.dp)
-            ) {
+            TextButton(onClick = { showDialog = true }, contentPadding = PaddingValues(0.dp)) {
                 Text(
                     "Tap to set a daily limit",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = AccentBlue)
+                    style = MaterialTheme.typography.bodyMedium.copy(color = colors.accentBlue)
                 )
             }
         } else {
@@ -75,36 +72,29 @@ fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
                     Text(
                         "₹ ${"%.0f".format(state.todaySpent)} spent",
                         style = MaterialTheme.typography.titleLarge.copy(
-                            color = if (state.isWithinLimit) TextPrimary else AccentRed,
+                            color = if (state.isWithinLimit) colors.textPrimary else colors.accentRed,
                             fontWeight = FontWeight.Medium
                         )
                     )
                     Text(
                         "of ₹ ${"%.0f".format(state.dailyLimit)} limit",
-                        style = MaterialTheme.typography.bodySmall.copy(color = TextTertiary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = colors.textTertiary)
                     )
                 }
-                TextButton(
-                    onClick = { showDialog = true },
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Text(
-                        "Edit",
-                        style = MaterialTheme.typography.labelMedium.copy(color = AccentBlue)
-                    )
+                TextButton(onClick = { showDialog = true }, contentPadding = PaddingValues(0.dp)) {
+                    Text("Edit", style = MaterialTheme.typography.labelMedium.copy(color = colors.accentBlue))
                 }
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Progress bar
             val shape = RoundedCornerShape(50)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(shape)
-                    .background(GlassWhite15)
+                    .background(colors.glassWhite15)
             ) {
                 Box(
                     modifier = Modifier
@@ -114,9 +104,9 @@ fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
                         .background(
                             brush = Brush.horizontalGradient(
                                 colors = if (state.isWithinLimit)
-                                    listOf(AccentGreen, Color(0xFF6EE7B7))
+                                    listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.5f))
                                 else
-                                    listOf(AccentRed, Color(0xFFFCA5A5))
+                                    listOf(colors.accentRed, colors.accentRed.copy(alpha = 0.5f))
                             )
                         )
                 )
@@ -127,10 +117,7 @@ fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
     if (showDialog) {
         SetLimitDialog(
             currentLimit = state.dailyLimit,
-            onConfirm = { limit ->
-                onSetLimit(limit)
-                showDialog = false
-            },
+            onConfirm = { limit -> onSetLimit(limit); showDialog = false },
             onDismiss = { showDialog = false }
         )
     }
@@ -142,30 +129,29 @@ private fun SetLimitDialog(
     onConfirm: (Double) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val colors = LocalAppColors.current
     var input by remember { mutableStateOf(if (currentLimit > 0) currentLimit.toInt().toString() else "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1A1F3E),
+        containerColor = if (colors.isDark) Color(0xFF1A1F3E) else Color(0xFFF0FAF6),
         title = {
-            Text(
-                "Set Daily Limit",
-                style = MaterialTheme.typography.titleMedium.copy(color = TextPrimary)
-            )
+            Text("Set Daily Limit",
+                style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary))
         },
         text = {
             OutlinedTextField(
                 value = input,
                 onValueChange = { input = it.filter { c -> c.isDigit() || c == '.' } },
-                label = { Text("Amount (₹)", color = TextSecondary) },
+                label = { Text("Amount (₹)", color = colors.textSecondary) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedBorderColor = AccentBlue,
-                    unfocusedBorderColor = GlassBorder,
-                    cursorColor = AccentBlue
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary,
+                    focusedBorderColor = colors.accentBlue,
+                    unfocusedBorderColor = colors.glassBorder,
+                    cursorColor = colors.accentBlue
                 )
             )
         },
@@ -174,12 +160,12 @@ private fun SetLimitDialog(
                 val limit = input.toDoubleOrNull()
                 if (limit != null && limit > 0) onConfirm(limit)
             }) {
-                Text("Set", color = AccentBlue)
+                Text("Set", color = colors.accentBlue)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
+                Text("Cancel", color = colors.textSecondary)
             }
         }
     )

@@ -2,14 +2,11 @@ package com.example.zorvyn_task.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,7 +23,7 @@ import com.example.zorvyn_task.ui.components.GlassBackground
 import com.example.zorvyn_task.ui.components.GlassCard
 import com.example.zorvyn_task.ui.goal.GoalSection
 import com.example.zorvyn_task.ui.goal.GoalViewModel
-import com.example.zorvyn_task.ui.theme.*
+import com.example.zorvyn_task.ui.theme.LocalAppColors
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,11 +32,11 @@ import java.util.*
 fun HomeScreen(
     viewModel: HomeViewModel,
     goalViewModel: GoalViewModel,
-    onAddTransaction: () -> Unit,
-    onOpenInsights: () -> Unit
+    onAddTransaction: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val goalState by goalViewModel.uiState.collectAsState()
+    val colors = LocalAppColors.current
 
     LaunchedEffect(Unit) {
         goalViewModel.evaluateStreakForToday()
@@ -52,7 +49,7 @@ fun HomeScreen(
                 .size(300.dp)
                 .offset(x = (-60).dp, y = (-40).dp)
                 .background(
-                    brush = Brush.radialGradient(listOf(Color(0x3060A5FA), Color.Transparent)),
+                    brush = Brush.radialGradient(listOf(colors.accentBlue.copy(alpha = 0.18f), Color.Transparent)),
                     shape = CircleShape
                 )
         )
@@ -62,7 +59,7 @@ fun HomeScreen(
                 .align(Alignment.TopEnd)
                 .offset(x = 60.dp, y = 80.dp)
                 .background(
-                    brush = Brush.radialGradient(listOf(Color(0x308B5CF6), Color.Transparent)),
+                    brush = Brush.radialGradient(listOf(colors.accentGreen.copy(alpha = 0.15f), Color.Transparent)),
                     shape = CircleShape
                 )
         )
@@ -77,42 +74,39 @@ fun HomeScreen(
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Light,
                                 letterSpacing = (-0.5).sp,
-                                color = TextPrimary
+                                color = colors.textPrimary
                             )
                         )
                     },
                     actions = {
-                        TextButton(onClick = onOpenInsights) {
-                            Text(
-                                "Insights",
-                                style = MaterialTheme.typography.labelMedium.copy(color = AccentBlue)
-                            )
+                        FloatingActionButton(
+                            onClick = onAddTransaction,
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(40.dp),
+                            containerColor = Color.Transparent,
+                            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.linearGradient(
+                                            if (colors.isDark)
+                                                listOf(Color(0xFF60A5FA), Color(0xFF818CF8))
+                                            else
+                                                listOf(Color(0xFF0D9E6A), Color(0xFF3DBE8A))
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("+", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Light)
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
-            },
-            floatingActionButton = {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(
-                            brush = Brush.linearGradient(
-                                listOf(Color(0xFF60A5FA), Color(0xFF818CF8))
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(onClick = onAddTransaction) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Add Transaction",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
             }
         ) { padding ->
             LazyColumn(
@@ -123,34 +117,24 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item { Spacer(modifier = Modifier.height(4.dp)) }
-
-                // Balance card
                 item { BalanceCard(state) }
-
-                // Income / Expense row
                 item { IncomeExpenseRow(state) }
-
-                // Daily goal section
                 item {
                     GoalSection(
                         state = goalState,
                         onSetLimit = { goalViewModel.setDailyLimit(it) }
                     )
                 }
-
-                // Transactions header
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "Recent Transactions",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = TextSecondary,
+                            color = colors.textSecondary,
                             letterSpacing = 1.sp
                         )
                     )
                 }
-
-                // Empty state
                 if (state.transactions.isEmpty()) {
                     item {
                         Box(
@@ -164,11 +148,11 @@ fun HomeScreen(
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     "No transactions yet",
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = TextTertiary)
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = colors.textTertiary)
                                 )
                                 Text(
                                     "Tap + to add your first one",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = TextTertiary)
+                                    style = MaterialTheme.typography.bodySmall.copy(color = colors.textTertiary)
                                 )
                             }
                         }
@@ -178,8 +162,7 @@ fun HomeScreen(
                         TransactionItem(transaction)
                     }
                 }
-
-                item { Spacer(modifier = Modifier.height(100.dp)) }
+                item { Spacer(modifier = Modifier.height(20.dp)) }
             }
         }
     }
@@ -187,18 +170,19 @@ fun HomeScreen(
 
 @Composable
 private fun BalanceCard(state: HomeUiState) {
+    val colors = LocalAppColors.current
     GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 24.dp) {
         Text(
             "Total Balance",
             style = MaterialTheme.typography.labelMedium.copy(
-                color = TextSecondary, letterSpacing = 1.sp
+                color = colors.textSecondary, letterSpacing = 1.sp
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             "₹ ${"%.2f".format(state.balance)}",
             style = MaterialTheme.typography.displayLarge.copy(
-                color = TextPrimary, fontWeight = FontWeight.Light
+                color = colors.textPrimary, fontWeight = FontWeight.Light
             )
         )
     }
@@ -206,35 +190,36 @@ private fun BalanceCard(state: HomeUiState) {
 
 @Composable
 private fun IncomeExpenseRow(state: HomeUiState) {
+    val colors = LocalAppColors.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         GlassCard(modifier = Modifier.weight(1f), cornerRadius = 20.dp) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(8.dp).background(AccentGreen, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(colors.accentGreen, CircleShape))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Income", style = MaterialTheme.typography.labelMedium.copy(color = TextSecondary))
+                Text("Income", style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary))
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "₹ ${"%.2f".format(state.totalIncome)}",
                 style = MaterialTheme.typography.titleLarge.copy(
-                    color = AccentGreen, fontWeight = FontWeight.Medium, fontSize = 18.sp
+                    color = colors.accentGreen, fontWeight = FontWeight.Medium, fontSize = 18.sp
                 )
             )
         }
         GlassCard(modifier = Modifier.weight(1f), cornerRadius = 20.dp) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(8.dp).background(AccentRed, CircleShape))
+                Box(modifier = Modifier.size(8.dp).background(colors.accentRed, CircleShape))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Expense", style = MaterialTheme.typography.labelMedium.copy(color = TextSecondary))
+                Text("Expense", style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary))
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "₹ ${"%.2f".format(state.totalExpense)}",
                 style = MaterialTheme.typography.titleLarge.copy(
-                    color = AccentRed, fontWeight = FontWeight.Medium, fontSize = 18.sp
+                    color = colors.accentRed, fontWeight = FontWeight.Medium, fontSize = 18.sp
                 )
             )
         }
@@ -243,11 +228,12 @@ private fun IncomeExpenseRow(state: HomeUiState) {
 
 @Composable
 private fun TransactionItem(transaction: TransactionEntity) {
+    val colors = LocalAppColors.current
     val dateStr = remember(transaction.date) {
         SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(transaction.date))
     }
     val isIncome = transaction.type == TransactionType.INCOME
-    val amountColor = if (isIncome) AccentGreen else AccentRed
+    val amountColor = if (isIncome) colors.accentGreen else colors.accentRed
     val prefix = if (isIncome) "+" else "-"
     val shape = RoundedCornerShape(16.dp)
 
@@ -255,8 +241,8 @@ private fun TransactionItem(transaction: TransactionEntity) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(Brush.horizontalGradient(listOf(GlassWhite15, GlassWhite10)))
-            .border(1.dp, GlassBorder, shape)
+            .background(Brush.horizontalGradient(listOf(colors.glassWhite15, colors.glassWhite10)))
+            .border(1.dp, colors.glassBorder, shape)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -266,7 +252,7 @@ private fun TransactionItem(transaction: TransactionEntity) {
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(if (isIncome) Color(0x2034D399) else Color(0x20FC8181)),
+                    .background(if (isIncome) colors.accentGreen.copy(alpha = 0.15f) else colors.accentRed.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Box(modifier = Modifier.size(10.dp).background(amountColor, CircleShape))
@@ -276,18 +262,18 @@ private fun TransactionItem(transaction: TransactionEntity) {
                 Text(
                     transaction.category,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = TextPrimary, fontWeight = FontWeight.Medium
+                        color = colors.textPrimary, fontWeight = FontWeight.Medium
                     )
                 )
                 if (!transaction.note.isNullOrBlank()) {
                     Text(
                         transaction.note,
-                        style = MaterialTheme.typography.bodySmall.copy(color = TextTertiary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = colors.textTertiary)
                     )
                 }
                 Text(
                     dateStr,
-                    style = MaterialTheme.typography.labelSmall.copy(color = TextTertiary)
+                    style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary)
                 )
             }
         }
