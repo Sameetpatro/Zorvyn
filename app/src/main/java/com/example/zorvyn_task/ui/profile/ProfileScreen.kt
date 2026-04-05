@@ -66,7 +66,7 @@ fun ProfileScreen(
                 )
             )
 
-            // ── Avatar card ───────────────────────────────────────────────────
+
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 24.dp) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -116,8 +116,6 @@ fun ProfileScreen(
                     StatChip("Expense", "₹${"%.0f".format(state.totalExpense)}", colors)
                 }
             }
-
-            // ── Dark mode toggle ──────────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -157,8 +155,6 @@ fun ProfileScreen(
                     )
                 }
             }
-
-            // ── Add past transaction ──────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier
@@ -192,8 +188,6 @@ fun ProfileScreen(
                     Icon(Icons.Default.ChevronRight, contentDescription = null, tint = colors.textTertiary)
                 }
             }
-
-            // ── Reset data ────────────────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier
@@ -227,8 +221,6 @@ fun ProfileScreen(
                     Icon(Icons.Default.ChevronRight, contentDescription = null, tint = colors.accentRed)
                 }
             }
-
-            // ── Success toast ─────────────────────────────────────────────────
             AnimatedVisibility(visible = state.successMessage != null) {
                 Box(
                     modifier = Modifier
@@ -265,7 +257,6 @@ fun ProfileScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun StatChip(label: String, value: String, colors: AppColors) {
@@ -309,7 +300,6 @@ private fun ResetConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 private val EXPENSE_CATEGORIES = listOf(
     "🍔 Food","🚗 Transport","🛍️ Shopping","🏥 Health",
@@ -335,7 +325,7 @@ private fun AddPastTransactionDialog(
     var note     by remember { mutableStateOf("") }
     var error    by remember { mutableStateOf<String?>(null) }
 
-    // ── Date picker ───────────────────────────────────────────────────────────
+
     var showDatePicker  by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = System.currentTimeMillis(),
@@ -385,7 +375,7 @@ private fun AddPastTransactionDialog(
         }
     }
 
-    // ── Shared field colours ──────────────────────────────────────────────────
+
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedTextColor          = colors.textPrimary,
         unfocusedTextColor        = colors.textPrimary,
@@ -412,7 +402,6 @@ private fun AddPastTransactionDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                // Type toggle
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -443,7 +432,7 @@ private fun AddPastTransactionDialog(
                     }
                 }
 
-                // Amount
+
                 OutlinedTextField(
                     value         = amount,
                     onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
@@ -455,7 +444,7 @@ private fun AddPastTransactionDialog(
                     shape         = RoundedCornerShape(10.dp)
                 )
 
-                // Category chips
+
                 Text("Category",
                     style = MaterialTheme.typography.labelSmall.copy(color = colors.textSecondary))
                 val categories = if (type == TransactionType.EXPENSE) EXPENSE_CATEGORIES else INCOME_CATEGORIES
@@ -476,7 +465,7 @@ private fun AddPastTransactionDialog(
                     }
                 }
 
-                // Note
+
                 OutlinedTextField(
                     value         = note,
                     onValueChange = { note = it },
@@ -487,7 +476,7 @@ private fun AddPastTransactionDialog(
                     shape         = RoundedCornerShape(10.dp)
                 )
 
-                // Date selector button
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -533,8 +522,6 @@ private fun AddPastTransactionDialog(
                         )
                     }
                 }
-
-                // Error
                 if (error != null) {
                     Text(error!!, style = MaterialTheme.typography.bodySmall.copy(color = colors.accentRed))
                 }

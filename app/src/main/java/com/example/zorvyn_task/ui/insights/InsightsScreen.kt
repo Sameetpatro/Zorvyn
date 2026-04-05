@@ -35,7 +35,7 @@ import com.example.zorvyn_task.ui.theme.LocalAppColors
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-// ── Feed card data ────────────────────────────────────────────────────────────
+
 
 enum class FeedCardType { USEFUL, FUN, TIP, NEUTRAL }
 
@@ -50,7 +50,6 @@ data class FeedCard(
 fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
     val cards = mutableListOf<FeedCard>()
 
-    // Dynamic cards from real data (highest priority, shown first)
     if (state.hasData) {
         if (state.monthlyTotal > 0) {
             val dayOfMonth = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_MONTH)
@@ -98,7 +97,6 @@ fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
         }
     }
 
-    // General finance tips (always shown, fill remaining up to 7 total)
     val tips = listOf(
         FeedCard(
             emoji = "☕",
@@ -151,7 +149,6 @@ fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
         )
     )
 
-    // Fill up to 7 cards total
     for (tip in tips) {
         if (cards.size >= 7) break
         cards += tip
@@ -160,7 +157,7 @@ fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
     return cards.take(7)
 }
 
-// ── Insights Screen ───────────────────────────────────────────────────────────
+
 
 enum class InsightsTab { FEED, ANALYTICS }
 
@@ -176,9 +173,8 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
-                .padding(top = 56.dp, bottom = 100.dp)
+                .padding(top = 56.dp, bottom = 16.dp)
         ) {
-            // ── Title ─────────────────────────────────────────────────────────
             Text(
                 "Insights",
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -187,8 +183,6 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
             )
 
             Spacer(modifier = Modifier.height(14.dp))
-
-            // ── Tab toggle (Feed | Analytics) — same style as Income/Expense ──
             val toggleShape = RoundedCornerShape(16.dp)
             Row(
                 modifier = Modifier
@@ -231,8 +225,6 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // ── Tab content ───────────────────────────────────────────────────
             AnimatedContent(
                 targetState   = selectedTab,
                 transitionSpec = { fadeIn(tween(250)).togetherWith(fadeOut(tween(200))) },
@@ -248,8 +240,6 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
     }
 }
 
-// ── Feed section ──────────────────────────────────────────────────────────────
-
 @Composable
 private fun FeedContent(state: InsightsUiState) {
     val colors = LocalAppColors.current
@@ -262,14 +252,12 @@ private fun FeedContent(state: InsightsUiState) {
         modifier            = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Progress indicator
         if (!finished) {
             Text(
                 "${currentIndex + 1} of ${cards.size}",
                 style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary)
             )
             Spacer(modifier = Modifier.height(6.dp))
-            // Dot progress
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 cards.forEachIndexed { idx, _ ->
                     Box(
@@ -287,7 +275,6 @@ private fun FeedContent(state: InsightsUiState) {
         }
 
         if (finished) {
-            // ── All done ──────────────────────────────────────────────────────
             Spacer(modifier = Modifier.weight(1f))
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -323,7 +310,6 @@ private fun FeedContent(state: InsightsUiState) {
                     modifier  = Modifier.padding(horizontal = 12.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                // Restart button
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -348,14 +334,12 @@ private fun FeedContent(state: InsightsUiState) {
             }
             Spacer(modifier = Modifier.weight(1f))
         } else {
-            // ── Card stack ────────────────────────────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                // Background stack (depth cards)
                 val preview = minOf(2, cards.size - currentIndex - 1)
                 for (i in preview downTo 1) {
                     Box(
@@ -370,7 +354,6 @@ private fun FeedContent(state: InsightsUiState) {
                     )
                 }
 
-                // Active swipeable card
                 SwipeCard(
                     card   = cards[currentIndex],
                     onSwipe = {
@@ -382,7 +365,6 @@ private fun FeedContent(state: InsightsUiState) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Swipe hint row
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment     = Alignment.CenterVertically,
@@ -409,8 +391,6 @@ private fun FeedContent(state: InsightsUiState) {
         }
     }
 }
-
-// ── Swipeable card ────────────────────────────────────────────────────────────
 
 @Composable
 private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
@@ -468,7 +448,6 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
             .background(cardGradient)
             .border(1.dp, tagColor.copy(alpha = 0.3f), RoundedCornerShape(28.dp))
     ) {
-        // GOT IT overlay
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart).padding(20.dp)
@@ -480,7 +459,6 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
                 style = MaterialTheme.typography.labelMedium.copy(
                     color = Color.White.copy(alpha = likeAlpha), fontWeight = FontWeight.Bold))
         }
-        // SKIP overlay
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd).padding(20.dp)
@@ -493,13 +471,11 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
                     color = Color.White.copy(alpha = skipAlpha), fontWeight = FontWeight.Bold))
         }
 
-        // Content
         Column(
             modifier            = Modifier.fillMaxSize().padding(28.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Tag pill
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
@@ -512,7 +488,6 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
                         color = tagColor, fontWeight = FontWeight.SemiBold))
             }
 
-            // Emoji + title + body
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -545,8 +520,6 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
     }
 }
 
-// ── Analytics section (original charts) ──────────────────────────────────────
-
 @Composable
 private fun AnalyticsContent(state: InsightsUiState) {
     val colors = LocalAppColors.current
@@ -568,14 +541,12 @@ private fun AnalyticsContent(state: InsightsUiState) {
                 )
             }
         } else {
-            // Monthly total card
             InsightCard(
                 emoji = "📅",
                 title = "This Month",
                 body  = "You've spent ₹${"%.2f".format(state.monthlyTotal)} so far this month."
             )
 
-            // Weekly comparison
             val weekChange = state.weeklyChangePercent
             val weekBody = when {
                 state.lastWeekTotal == 0.0 -> "No spending last week to compare."
@@ -590,7 +561,6 @@ private fun AnalyticsContent(state: InsightsUiState) {
                 highlight = if (weekChange > 10) colors.accentRed else if (weekChange < 0) colors.accentGreen else null
             )
 
-            // Top category
             if (state.topCategory.isNotEmpty()) {
                 InsightCard(
                     emoji = "🏷️",
@@ -599,23 +569,18 @@ private fun AnalyticsContent(state: InsightsUiState) {
                 )
             }
 
-            // Bar chart – weekly
             SpendingBarChart(thisWeek = state.thisWeekTotal, lastWeek = state.lastWeekTotal)
 
-            // Category bar chart
             if (state.categoryTotals.isNotEmpty()) {
                 CategoryBarChart(categoryTotals = state.categoryTotals)
             }
 
-            // Heatmap
             SpendingHeatmap(daySpending = state.last35DaySpending)
 
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
-
-// ── Chart composables (unchanged from original) ───────────────────────────────
 
 @Composable
 private fun SpendingBarChart(thisWeek: Double, lastWeek: Double) {

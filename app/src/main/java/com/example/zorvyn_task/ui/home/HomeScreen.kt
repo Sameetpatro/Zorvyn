@@ -43,7 +43,6 @@ fun HomeScreen(
     }
 
     GlassBackground(modifier = Modifier.fillMaxSize()) {
-        // Ambient orbs — mint tones
         Box(
             modifier = Modifier
                 .size(300.dp)
@@ -79,7 +78,6 @@ fun HomeScreen(
                         )
                     },
                     actions = {
-                        // FAB-style add button — always mint green
                         FloatingActionButton(
                             onClick        = onAddTransaction,
                             modifier       = Modifier.padding(end = 12.dp).size(40.dp),

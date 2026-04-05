@@ -40,17 +40,15 @@ class GoalViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = GoalUiState()
     )
-
-    // Called once on app open to evaluate streak for today
     fun evaluateStreakForToday() {
         viewModelScope.launch {
             val todayStr = dateFormat.format(Date())
             val lastChecked = goalRepository.lastCheckedDate.first()
 
-            if (lastChecked == todayStr) return@launch // Already evaluated today
+            if (lastChecked == todayStr) return@launch
 
             val limit = goalRepository.dailyLimit.first()
-            if (limit <= 0.0) return@launch // Limit not set, skip
+            if (limit <= 0.0) return@launch
 
             val transactions = transactionRepository.getAllTransactions().first()
             val yesterdayStr = dateFormat.format(

@@ -6,7 +6,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 
-// ── Material colour schemes ────────────────────────────────────────────────────
 
 private val DarkColorScheme = darkColorScheme(
     primary      = DarkAccentGreen,   // mint
@@ -36,8 +35,6 @@ private val LightColorScheme = lightColorScheme(
     outline      = LightGlassBorder
 )
 
-// ── CompositionLocal token bundle ─────────────────────────────────────────────
-
 data class AppColors(
     val bgTop: Color,
     val bgMid: Color,
@@ -48,12 +45,12 @@ data class AppColors(
     val glassBorderStrong: Color,
     val accentGreen: Color,
     val accentRed: Color,
-    val accentBlue: Color,        // in dark mode this is mint; in light it's teal
+    val accentBlue: Color,
     val textPrimary: Color,
     val textSecondary: Color,
     val textTertiary: Color,
     val cardBg: Color,
-    val fieldContainer: Color,    // solid background for text-input fields
+    val fieldContainer: Color,
     val isDark: Boolean
 )
 
@@ -67,12 +64,12 @@ val darkAppColors = AppColors(
     glassBorderStrong = DarkGlassBorderStrong,
     accentGreen       = DarkAccentGreen,
     accentRed         = DarkAccentRed,
-    accentBlue        = DarkAccentBlue,   // mint green
+    accentBlue        = DarkAccentBlue,
     textPrimary       = DarkTextPrimary,
     textSecondary     = DarkTextSecondary,
     textTertiary      = DarkTextTertiary,
     cardBg            = DarkGlassWhite15,
-    fieldContainer    = Color(0xFF1A2020), // very dark tinted surface for inputs
+    fieldContainer    = Color(0xFF1A2020),
     isDark            = true
 )
 
@@ -91,7 +88,7 @@ val lightAppColors = AppColors(
     textSecondary     = LightTextSecondary,
     textTertiary      = LightTextTertiary,
     cardBg            = LightCardBg,
-    fieldContainer    = Color(0xFFFFFFFF), // pure white for inputs in light mode
+    fieldContainer    = Color(0xFFFFFFFF),
     isDark            = false
 )
 

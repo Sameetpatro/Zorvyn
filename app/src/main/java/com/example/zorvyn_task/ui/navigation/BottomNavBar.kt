@@ -44,9 +44,9 @@ fun BottomNavBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .background(colors.bgBottom)
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-        // Nav pill background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -64,7 +64,6 @@ fun BottomNavBar(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Profile (left of center)
                 NavItem(
                     icon     = Icons.Default.Person,
                     label    = "Profile",
@@ -73,8 +72,6 @@ fun BottomNavBar(
                     colors   = colors,
                     modifier = Modifier.weight(1f)
                 )
-
-                // Centre placeholder for FAB
                 Spacer(modifier = Modifier.weight(1f))
 
                 NavItem(
@@ -87,8 +84,6 @@ fun BottomNavBar(
                 )
             }
         }
-
-        // Centre FAB — Home button, always mint green gradient
         Box(
             modifier = Modifier
                 .size(60.dp)

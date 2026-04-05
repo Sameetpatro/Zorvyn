@@ -59,8 +59,6 @@ fun AuthScreen(viewModel: AuthViewModel, onAuthSuccess: () -> Unit) {
     }
 }
 
-// ── Setup screen ──────────────────────────────────────────────────────────────
-
 @Composable
 private fun SetupScreen(
     onSetup: (String, String) -> Unit,
@@ -90,7 +88,6 @@ private fun SetupScreen(
     )
 
     GlassBackground(modifier = Modifier.fillMaxSize()) {
-        // Ambient orbs
         Box(
             modifier = Modifier
                 .size(350.dp).offset(x = (-80).dp, y = (-60).dp)
@@ -115,7 +112,6 @@ private fun SetupScreen(
             verticalArrangement   = Arrangement.Center,
             horizontalAlignment   = Alignment.CenterHorizontally
         ) {
-            // Logo
             Box(
                 modifier = Modifier
                     .size(72.dp)
@@ -215,8 +211,6 @@ private fun SetupScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
-
-                // Create account button — mint green gradient
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -249,8 +243,6 @@ private fun SetupScreen(
         }
     }
 }
-
-// ── PIN entry screen ──────────────────────────────────────────────────────────
 
 @Composable
 private fun PinEntryScreen(
@@ -362,7 +354,6 @@ private fun PinEntryScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Numpad
             val keys = listOf("1","2","3","4","5","6","7","8","9","","0","⌫")
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),

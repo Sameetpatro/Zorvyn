@@ -32,11 +32,11 @@ import com.example.zorvyn_task.ui.components.GlassCard
 import com.example.zorvyn_task.ui.theme.LocalAppColors
 
 private val EXPENSE_CATEGORIES = listOf(
-    "🍔 Food","🚗 Transport","🛍️ Shopping","🏥 Health",
-    "🎬 Entertainment","🏠 Housing","📱 Utilities","📚 Education","✈️ Travel","💡 Other"
+    "Food","Transport","Shopping","Health",
+    "Entertainment","Housing","Utilities","Education","Travel","Other"
 )
 private val INCOME_CATEGORIES = listOf(
-    "💼 Salary","💰 Freelance","📈 Investment","🎁 Gift","💳 Refund","💡 Other"
+    "Salary","Freelance","Investment","Gift","Refund","Other"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,10 +48,8 @@ fun AddTransactionScreen(
     val state by viewModel.uiState.collectAsState()
     val colors = LocalAppColors.current
 
-    // Solid field background — dark tinted in dark mode, pure white in light mode
-    val fieldContainerColor = colors.fieldContainer
+    val fieldContainerColor = if (colors.isDark) Color(0xFF1A2020) else Color(0xFFFFFFFF)
 
-    // Text color is always the theme's primary text (dark green in light, white in dark)
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedTextColor        = colors.textPrimary,
         unfocusedTextColor      = colors.textPrimary,
@@ -101,8 +99,6 @@ fun AddTransactionScreen(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 TypeToggle(selected = state.type, onSelect = viewModel::setType)
-
-                // ── Amount ────────────────────────────────────────────────────
                 GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                     Text(
                         "AMOUNT",
@@ -123,8 +119,6 @@ fun AddTransactionScreen(
                         AmountField(value = state.amount, onValueChange = viewModel::setAmount)
                     }
                 }
-
-                // ── Category ──────────────────────────────────────────────────
                 GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                     Text(
                         "CATEGORY",
@@ -146,8 +140,6 @@ fun AddTransactionScreen(
                         }
                     }
                 }
-
-                // ── Note ──────────────────────────────────────────────────────
                 GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                     Text(
                         "NOTE (optional)",
@@ -167,8 +159,6 @@ fun AddTransactionScreen(
                         shape          = RoundedCornerShape(12.dp)
                     )
                 }
-
-                // ── Error ─────────────────────────────────────────────────────
                 AnimatedVisibility(visible = state.error != null) {
                     Text(
                         state.error ?: "",
@@ -176,8 +166,6 @@ fun AddTransactionScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-
-                // ── Save button ───────────────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

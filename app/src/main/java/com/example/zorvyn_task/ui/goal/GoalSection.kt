@@ -136,9 +136,7 @@ private fun SetLimitDialog(
     val colors = LocalAppColors.current
     var input by remember { mutableStateOf(if (currentLimit > 0) currentLimit.toInt().toString() else "") }
 
-    // FIXED: use theme-aware container color
     val containerColor = if (colors.isDark) Color(0xFF1A1F3E) else Color(0xFFF0FAF6)
-    // FIXED: solid field background so text is always readable
     val fieldContainerColor = if (colors.isDark) Color(0xFF2A2F5E) else Color(0xFFFFFFFF)
 
     AlertDialog(
@@ -166,7 +164,6 @@ private fun SetLimitDialog(
                     focusedLabelColor = colors.accentBlue,
                     unfocusedLabelColor = colors.textSecondary,
                     cursorColor = colors.accentBlue,
-                    // Solid container keeps text visible in both themes
                     focusedContainerColor = fieldContainerColor,
                     unfocusedContainerColor = fieldContainerColor,
                 )
