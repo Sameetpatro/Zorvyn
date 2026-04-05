@@ -299,7 +299,6 @@ private fun PinEntryScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar circle — mint gradient
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -327,23 +326,6 @@ private fun PinEntryScreen(
                     color = colors.textPrimary, fontWeight = FontWeight.Light))
             Spacer(modifier = Modifier.height(8.dp))
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(colors.glassWhite10)
-                    .border(1.dp, colors.glassBorder, RoundedCornerShape(50))
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    userId.take(16) + "…",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = colors.textTertiary, letterSpacing = 0.5.sp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(44.dp))
-
-            // PIN dots — mint gradient when filled
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.offset(x = shakeAnim.value.dp)

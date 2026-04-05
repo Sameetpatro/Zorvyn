@@ -48,17 +48,18 @@ fun AddTransactionScreen(
     val state by viewModel.uiState.collectAsState()
     val colors = LocalAppColors.current
 
-    // Solid field background so typed text is always readable
-    val fieldContainerColor = if (colors.isDark) Color(0xFF1A2040) else Color(0xFFFFFFFF)
+    // Solid field background — dark tinted in dark mode, pure white in light mode
+    val fieldContainerColor = colors.fieldContainer
 
+    // Text color is always the theme's primary text (dark green in light, white in dark)
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor      = colors.textPrimary,
-        unfocusedTextColor    = colors.textPrimary,
-        focusedBorderColor    = colors.accentBlue,
-        unfocusedBorderColor  = colors.glassBorder,
-        focusedLabelColor     = colors.accentBlue,
-        unfocusedLabelColor   = colors.textSecondary,
-        cursorColor           = colors.accentBlue,
+        focusedTextColor        = colors.textPrimary,
+        unfocusedTextColor      = colors.textPrimary,
+        focusedBorderColor      = colors.accentBlue,
+        unfocusedBorderColor    = colors.glassBorder,
+        focusedLabelColor       = colors.accentBlue,
+        unfocusedLabelColor     = colors.textSecondary,
+        cursorColor             = colors.accentBlue,
         focusedContainerColor   = fieldContainerColor,
         unfocusedContainerColor = fieldContainerColor,
         focusedPlaceholderColor   = colors.textTertiary,
@@ -203,7 +204,8 @@ fun AddTransactionScreen(
                         Text(
                             "Save Transaction",
                             style = MaterialTheme.typography.titleMedium.copy(
-                                color = Color.White, fontWeight = FontWeight.Medium
+                                color = if (colors.isDark) Color.Black else Color.White,
+                                fontWeight = FontWeight.Medium
                             )
                         )
                     }
@@ -222,7 +224,7 @@ private fun AmountField(value: String, onValueChange: (String) -> Unit) {
         value         = value,
         onValueChange = { new -> onValueChange(new.filter { c -> c.isDigit() || c == '.' }) },
         textStyle     = MaterialTheme.typography.headlineLarge.copy(
-            color      = colors.textPrimary,   // always theme-correct colour
+            color      = colors.textPrimary,
             fontWeight = FontWeight.Light
         ),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),

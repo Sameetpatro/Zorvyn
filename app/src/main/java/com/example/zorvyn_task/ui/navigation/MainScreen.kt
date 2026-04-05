@@ -33,7 +33,6 @@ fun MainScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // ── Tab content ────────────────────────────────────────────────────────
         AnimatedContent(
             targetState = currentTab,
             transitionSpec = {
@@ -41,11 +40,11 @@ fun MainScreen(
                     initialScale = 0.93f,
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMediumLow
+                        stiffness    = Spring.StiffnessMediumLow
                     )
                 )).togetherWith(
                     fadeOut(tween(200)) + scaleOut(
-                        targetScale = 0.95f,
+                        targetScale  = 0.95f,
                         animationSpec = tween(200)
                     )
                 )
@@ -72,7 +71,6 @@ fun MainScreen(
             }
         }
 
-        // ── Bottom nav ─────────────────────────────────────────────────────────
         BottomNavBar(
             currentTab    = currentTab,
             onTabSelected = { currentTab = it },

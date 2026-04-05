@@ -97,7 +97,7 @@ fun ProfileScreen(
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            state.userId.take(20) + "…",
+                            "Zorvyn Finance",
                             style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary)
                         )
                     }
@@ -487,7 +487,7 @@ private fun AddPastTransactionDialog(
                     shape         = RoundedCornerShape(10.dp)
                 )
 
-                // Date selector button (replaces manual text input)
+                // Date selector button
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

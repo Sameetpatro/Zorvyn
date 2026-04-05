@@ -46,7 +46,7 @@ fun BottomNavBar(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-        // Nav pill background — always uses theme glass colors
+        // Nav pill background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -64,6 +64,7 @@ fun BottomNavBar(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Profile (left of center)
                 NavItem(
                     icon     = Icons.Default.Person,
                     label    = "Profile",
@@ -73,7 +74,7 @@ fun BottomNavBar(
                     modifier = Modifier.weight(1f)
                 )
 
-                // Centre placeholder (real FAB overlaid below)
+                // Centre placeholder for FAB
                 Spacer(modifier = Modifier.weight(1f))
 
                 NavItem(
@@ -113,7 +114,6 @@ fun BottomNavBar(
             BubbleIcon(
                 icon     = Icons.Default.Home,
                 selected = currentTab == BottomTab.HOME,
-                // Icon is always black so it contrasts on mint
                 tint     = Color.Black
             )
         }
@@ -151,19 +151,17 @@ private fun NavItem(
                 .scale(scale)
                 .clip(RoundedCornerShape(12.dp))
                 .background(
-                    // selected highlight uses accentGreen (mint in dark, teal in light)
                     if (selected) colors.accentGreen.copy(alpha = 0.20f)
                     else Color.Transparent
                 )
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(horizontal = 10.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector    = icon,
+                imageVector        = icon,
                 contentDescription = label,
-                // selected icon is mint/teal; unselected is tertiary text
-                tint           = if (selected) colors.accentGreen else colors.textTertiary,
-                modifier       = Modifier.size(22.dp)
+                tint               = if (selected) colors.accentGreen else colors.textTertiary,
+                modifier           = Modifier.size(22.dp)
             )
         }
         if (selected) {

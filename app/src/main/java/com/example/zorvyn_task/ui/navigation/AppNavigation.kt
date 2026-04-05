@@ -33,7 +33,6 @@ object Routes {
     const val ADD_TRANSACTION = "add_transaction"
 }
 
-// Bubble-style enter/exit specs
 private fun bubbleEnter() = fadeIn(tween(300)) +
         scaleIn(initialScale = 0.88f, animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -92,13 +91,13 @@ fun AppNavigation(
             )
 
             MainScreen(
-                homeViewModel    = homeViewModel,
-                goalViewModel    = goalViewModel,
+                homeViewModel     = homeViewModel,
+                goalViewModel     = goalViewModel,
                 insightsViewModel = insightsViewModel,
-                profileViewModel = profileViewModel,
-                isDarkMode       = isDarkMode,
-                onToggleDarkMode = onToggleDarkMode,
-                onAddTransaction = {
+                profileViewModel  = profileViewModel,
+                isDarkMode        = isDarkMode,
+                onToggleDarkMode  = onToggleDarkMode,
+                onAddTransaction  = {
                     haptic.click()
                     navController.navigate(Routes.ADD_TRANSACTION)
                 },
