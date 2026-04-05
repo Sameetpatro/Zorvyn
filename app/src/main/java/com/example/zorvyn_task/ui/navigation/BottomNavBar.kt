@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShowChart
@@ -27,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.zorvyn_task.ui.components.HapticHelper
+import com.example.zorvyn_task.ui.theme.AppColors
 import com.example.zorvyn_task.ui.theme.LocalAppColors
 
 enum class BottomTab { PROFILE, HOME, INSIGHTS }
@@ -46,7 +46,7 @@ fun BottomNavBar(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-        // Nav pill background
+        // Nav pill background — always uses theme glass colors
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -65,29 +65,29 @@ fun BottomNavBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 NavItem(
-                    icon = Icons.Default.Person,
-                    label = "Profile",
+                    icon     = Icons.Default.Person,
+                    label    = "Profile",
                     selected = currentTab == BottomTab.PROFILE,
-                    onClick = { haptic.tick(); onTabSelected(BottomTab.PROFILE) },
-                    colors = colors,
+                    onClick  = { haptic.tick(); onTabSelected(BottomTab.PROFILE) },
+                    colors   = colors,
                     modifier = Modifier.weight(1f)
                 )
 
-                // Center FAB placeholder (actual FAB overlaid)
+                // Centre placeholder (real FAB overlaid below)
                 Spacer(modifier = Modifier.weight(1f))
 
                 NavItem(
-                    icon = Icons.Default.ShowChart,
-                    label = "Insights",
+                    icon     = Icons.Default.ShowChart,
+                    label    = "Insights",
                     selected = currentTab == BottomTab.INSIGHTS,
-                    onClick = { haptic.tick(); onTabSelected(BottomTab.INSIGHTS) },
-                    colors = colors,
+                    onClick  = { haptic.tick(); onTabSelected(BottomTab.INSIGHTS) },
+                    colors   = colors,
                     modifier = Modifier.weight(1f)
                 )
             }
         }
 
-        // Center FAB — Home
+        // Centre FAB — Home button, always mint green gradient
         Box(
             modifier = Modifier
                 .size(60.dp)
@@ -95,15 +95,15 @@ fun BottomNavBar(
                 .clip(CircleShape)
                 .background(
                     Brush.linearGradient(
-                        if (colors.isDark)
-                            listOf(Color(0xFF60A5FA), Color(0xFF818CF8))
-                        else
-                            listOf(Color(0xFF0D9E6A), Color(0xFF3DBE8A))
+                        listOf(
+                            colors.accentGreen,
+                            colors.accentGreen.copy(alpha = 0.75f)
+                        )
                     )
                 )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = null
+                    indication        = null
                 ) {
                     haptic.click()
                     onTabSelected(BottomTab.HOME)
@@ -111,9 +111,10 @@ fun BottomNavBar(
             contentAlignment = Alignment.Center
         ) {
             BubbleIcon(
-                icon = Icons.Default.Home,
+                icon     = Icons.Default.Home,
                 selected = currentTab == BottomTab.HOME,
-                tint = Color.White
+                // Icon is always black so it contrasts on mint
+                tint     = Color.Black
             )
         }
     }
@@ -125,13 +126,13 @@ private fun NavItem(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
-    colors: com.example.zorvyn_task.ui.theme.AppColors,
+    colors: AppColors,
     modifier: Modifier = Modifier
 ) {
     val scale by animateFloatAsState(
-        targetValue = if (selected) 1.12f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "scale"
+        targetValue    = if (selected) 1.12f else 1f,
+        animationSpec  = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label          = "navScale"
     )
 
     Column(
@@ -139,8 +140,8 @@ private fun NavItem(
             .fillMaxHeight()
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
+                indication        = null,
+                onClick           = onClick
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -150,27 +151,28 @@ private fun NavItem(
                 .scale(scale)
                 .clip(RoundedCornerShape(12.dp))
                 .background(
-                    if (selected)
-                        colors.accentBlue.copy(alpha = if (colors.isDark) 0.25f else 0.15f)
+                    // selected highlight uses accentGreen (mint in dark, teal in light)
+                    if (selected) colors.accentGreen.copy(alpha = 0.20f)
                     else Color.Transparent
                 )
                 .padding(horizontal = 12.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = icon,
+                imageVector    = icon,
                 contentDescription = label,
-                tint = if (selected) colors.accentBlue else colors.textTertiary,
-                modifier = Modifier.size(22.dp)
+                // selected icon is mint/teal; unselected is tertiary text
+                tint           = if (selected) colors.accentGreen else colors.textTertiary,
+                modifier       = Modifier.size(22.dp)
             )
         }
         if (selected) {
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 label,
-                fontSize = 10.sp,
+                fontSize   = 10.sp,
                 fontWeight = FontWeight.Medium,
-                color = colors.accentBlue
+                color      = colors.accentGreen
             )
         }
     }
@@ -179,18 +181,18 @@ private fun NavItem(
 @Composable
 private fun BubbleIcon(icon: ImageVector, selected: Boolean, tint: Color) {
     val scale by animateFloatAsState(
-        targetValue = if (selected) 1.15f else 1f,
+        targetValue   = if (selected) 1.15f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness    = Spring.StiffnessMedium
         ),
         label = "bubbleScale"
     )
     Icon(
-        imageVector = icon,
+        imageVector        = icon,
         contentDescription = null,
-        tint = tint,
-        modifier = Modifier
+        tint               = tint,
+        modifier           = Modifier
             .size(28.dp)
             .scale(scale)
     )

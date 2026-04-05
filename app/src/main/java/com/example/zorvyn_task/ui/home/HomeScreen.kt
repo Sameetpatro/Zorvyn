@@ -34,23 +34,23 @@ fun HomeScreen(
     goalViewModel: GoalViewModel,
     onAddTransaction: () -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state     by viewModel.uiState.collectAsState()
     val goalState by goalViewModel.uiState.collectAsState()
-    val colors = LocalAppColors.current
+    val colors    = LocalAppColors.current
 
     LaunchedEffect(Unit) {
         goalViewModel.evaluateStreakForToday()
     }
 
     GlassBackground(modifier = Modifier.fillMaxSize()) {
-        // Ambient orbs
+        // Ambient orbs — mint tones
         Box(
             modifier = Modifier
                 .size(300.dp)
                 .offset(x = (-60).dp, y = (-40).dp)
                 .background(
-                    brush = Brush.radialGradient(listOf(colors.accentBlue.copy(alpha = 0.18f), Color.Transparent)),
-                    shape = CircleShape
+                    Brush.radialGradient(listOf(colors.accentGreen.copy(alpha = 0.18f), Color.Transparent)),
+                    CircleShape
                 )
         )
         Box(
@@ -59,8 +59,8 @@ fun HomeScreen(
                 .align(Alignment.TopEnd)
                 .offset(x = 60.dp, y = 80.dp)
                 .background(
-                    brush = Brush.radialGradient(listOf(colors.accentGreen.copy(alpha = 0.15f), Color.Transparent)),
-                    shape = CircleShape
+                    Brush.radialGradient(listOf(colors.accentGreen.copy(alpha = 0.12f), Color.Transparent)),
+                    CircleShape
                 )
         )
 
@@ -72,20 +72,19 @@ fun HomeScreen(
                         Text(
                             "Finance",
                             style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Light,
+                                fontWeight   = FontWeight.Light,
                                 letterSpacing = (-0.5).sp,
-                                color = colors.textPrimary
+                                color        = colors.textPrimary
                             )
                         )
                     },
                     actions = {
+                        // FAB-style add button — always mint green
                         FloatingActionButton(
-                            onClick = onAddTransaction,
-                            modifier = Modifier
-                                .padding(end = 12.dp)
-                                .size(40.dp),
+                            onClick        = onAddTransaction,
+                            modifier       = Modifier.padding(end = 12.dp).size(40.dp),
                             containerColor = Color.Transparent,
-                            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
+                            elevation      = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -93,15 +92,20 @@ fun HomeScreen(
                                     .clip(CircleShape)
                                     .background(
                                         Brush.linearGradient(
-                                            if (colors.isDark)
-                                                listOf(Color(0xFF60A5FA), Color(0xFF818CF8))
-                                            else
-                                                listOf(Color(0xFF0D9E6A), Color(0xFF3DBE8A))
+                                            listOf(
+                                                colors.accentGreen,
+                                                colors.accentGreen.copy(alpha = 0.7f)
+                                            )
                                         )
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("+", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Light)
+                                Text(
+                                    "+",
+                                    color      = if (colors.isDark) Color.Black else Color.White,
+                                    fontSize   = 22.sp,
+                                    fontWeight = FontWeight.Light
+                                )
                             }
                         }
                     },
@@ -121,7 +125,7 @@ fun HomeScreen(
                 item { IncomeExpenseRow(state) }
                 item {
                     GoalSection(
-                        state = goalState,
+                        state    = goalState,
                         onSetLimit = { goalViewModel.setDailyLimit(it) }
                     )
                 }
@@ -130,8 +134,7 @@ fun HomeScreen(
                     Text(
                         "Recent Transactions",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = colors.textSecondary,
-                            letterSpacing = 1.sp
+                            color = LocalAppColors.current.textSecondary, letterSpacing = 1.sp
                         )
                     )
                 }
@@ -148,11 +151,15 @@ fun HomeScreen(
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     "No transactions yet",
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = colors.textTertiary)
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = LocalAppColors.current.textTertiary
+                                    )
                                 )
                                 Text(
                                     "Tap + to add your first one",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = colors.textTertiary)
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = LocalAppColors.current.textTertiary
+                                    )
                                 )
                             }
                         }
@@ -199,7 +206,8 @@ private fun IncomeExpenseRow(state: HomeUiState) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(8.dp).background(colors.accentGreen, CircleShape))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Income", style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary))
+                Text("Income",
+                    style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary))
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -213,7 +221,8 @@ private fun IncomeExpenseRow(state: HomeUiState) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(8.dp).background(colors.accentRed, CircleShape))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Expense", style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary))
+                Text("Expense",
+                    style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary))
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -228,14 +237,14 @@ private fun IncomeExpenseRow(state: HomeUiState) {
 
 @Composable
 private fun TransactionItem(transaction: TransactionEntity) {
-    val colors = LocalAppColors.current
+    val colors  = LocalAppColors.current
     val dateStr = remember(transaction.date) {
         SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(transaction.date))
     }
-    val isIncome = transaction.type == TransactionType.INCOME
+    val isIncome    = transaction.type == TransactionType.INCOME
     val amountColor = if (isIncome) colors.accentGreen else colors.accentRed
-    val prefix = if (isIncome) "+" else "-"
-    val shape = RoundedCornerShape(16.dp)
+    val prefix      = if (isIncome) "+" else "-"
+    val shape       = RoundedCornerShape(16.dp)
 
     Row(
         modifier = Modifier
@@ -245,14 +254,14 @@ private fun TransactionItem(transaction: TransactionEntity) {
             .border(1.dp, colors.glassBorder, shape)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment     = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(if (isIncome) colors.accentGreen.copy(alpha = 0.15f) else colors.accentRed.copy(alpha = 0.15f)),
+                    .background(amountColor.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Box(modifier = Modifier.size(10.dp).background(amountColor, CircleShape))
@@ -266,15 +275,11 @@ private fun TransactionItem(transaction: TransactionEntity) {
                     )
                 )
                 if (!transaction.note.isNullOrBlank()) {
-                    Text(
-                        transaction.note,
-                        style = MaterialTheme.typography.bodySmall.copy(color = colors.textTertiary)
-                    )
+                    Text(transaction.note,
+                        style = MaterialTheme.typography.bodySmall.copy(color = colors.textTertiary))
                 }
-                Text(
-                    dateStr,
-                    style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary)
-                )
+                Text(dateStr,
+                    style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary))
             }
         }
         Text(

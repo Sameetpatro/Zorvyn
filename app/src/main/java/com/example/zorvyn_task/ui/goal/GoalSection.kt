@@ -41,7 +41,8 @@ fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
                     modifier = Modifier
                         .size(8.dp)
                         .background(
-                            if (state.limitSet && state.isWithinLimit) colors.accentGreen else colors.accentRed,
+                            if (state.limitSet && state.isWithinLimit) colors.accentGreen
+                            else colors.accentRed,
                             CircleShape
                         )
                 )
@@ -82,7 +83,10 @@ fun GoalSection(state: GoalUiState, onSetLimit: (Double) -> Unit) {
                     )
                 }
                 TextButton(onClick = { showDialog = true }, contentPadding = PaddingValues(0.dp)) {
-                    Text("Edit", style = MaterialTheme.typography.labelMedium.copy(color = colors.accentBlue))
+                    Text(
+                        "Edit",
+                        style = MaterialTheme.typography.labelMedium.copy(color = colors.accentBlue)
+                    )
                 }
             }
 
@@ -132,12 +136,19 @@ private fun SetLimitDialog(
     val colors = LocalAppColors.current
     var input by remember { mutableStateOf(if (currentLimit > 0) currentLimit.toInt().toString() else "") }
 
+    // FIXED: use theme-aware container color
+    val containerColor = if (colors.isDark) Color(0xFF1A1F3E) else Color(0xFFF0FAF6)
+    // FIXED: solid field background so text is always readable
+    val fieldContainerColor = if (colors.isDark) Color(0xFF2A2F5E) else Color(0xFFFFFFFF)
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = if (colors.isDark) Color(0xFF1A1F3E) else Color(0xFFF0FAF6),
+        containerColor = containerColor,
         title = {
-            Text("Set Daily Limit",
-                style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary))
+            Text(
+                "Set Daily Limit",
+                style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary)
+            )
         },
         text = {
             OutlinedTextField(
@@ -146,12 +157,18 @@ private fun SetLimitDialog(
                 label = { Text("Amount (₹)", color = colors.textSecondary) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
+                shape = RoundedCornerShape(10.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = colors.textPrimary,
                     unfocusedTextColor = colors.textPrimary,
                     focusedBorderColor = colors.accentBlue,
                     unfocusedBorderColor = colors.glassBorder,
-                    cursorColor = colors.accentBlue
+                    focusedLabelColor = colors.accentBlue,
+                    unfocusedLabelColor = colors.textSecondary,
+                    cursorColor = colors.accentBlue,
+                    // Solid container keeps text visible in both themes
+                    focusedContainerColor = fieldContainerColor,
+                    unfocusedContainerColor = fieldContainerColor,
                 )
             )
         },

@@ -5,7 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,7 +14,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-//import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.example.zorvyn_task.data.local.TransactionType
 import com.example.zorvyn_task.ui.components.GlassBackground
 import com.example.zorvyn_task.ui.components.GlassCard
+import com.example.zorvyn_task.ui.theme.AppColors
 import com.example.zorvyn_task.ui.theme.LocalAppColors
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,7 +40,7 @@ fun ProfileScreen(
     isDarkMode: Boolean,
     onToggleDarkMode: () -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state  by viewModel.uiState.collectAsState()
     val colors = LocalAppColors.current
 
     LaunchedEffect(state.successMessage) {
@@ -58,16 +59,14 @@ fun ProfileScreen(
                 .padding(top = 56.dp, bottom = 100.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header
             Text(
                 "Profile",
                 style = MaterialTheme.typography.titleLarge.copy(
-                    color = colors.textPrimary,
-                    fontWeight = FontWeight.Light
+                    color = colors.textPrimary, fontWeight = FontWeight.Light
                 )
             )
 
-            // Avatar + name card
+            // ── Avatar card ───────────────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 24.dp) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -76,18 +75,15 @@ fun ProfileScreen(
                             .clip(CircleShape)
                             .background(
                                 Brush.linearGradient(
-                                    if (colors.isDark)
-                                        listOf(Color(0xFF60A5FA), Color(0xFF818CF8))
-                                    else
-                                        listOf(Color(0xFF0D9E6A), Color(0xFF3DBE8A))
+                                    listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.6f))
                                 )
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             state.userName.firstOrNull()?.uppercaseChar()?.toString() ?: "U",
-                            fontSize = 26.sp,
-                            color = Color.White,
+                            fontSize   = 26.sp,
+                            color      = if (colors.isDark) Color.Black else Color.White,
                             fontWeight = FontWeight.Light
                         )
                     }
@@ -96,8 +92,7 @@ fun ProfileScreen(
                         Text(
                             state.userName,
                             style = MaterialTheme.typography.titleLarge.copy(
-                                color = colors.textPrimary,
-                                fontWeight = FontWeight.Medium
+                                color = colors.textPrimary, fontWeight = FontWeight.Medium
                             )
                         )
                         Spacer(modifier = Modifier.height(2.dp))
@@ -117,12 +112,12 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     StatChip("Transactions", state.transactionCount.toString(), colors)
-                    StatChip("Income", "₹${"%.0f".format(state.totalIncome)}", colors)
+                    StatChip("Income",  "₹${"%.0f".format(state.totalIncome)}",  colors)
                     StatChip("Expense", "₹${"%.0f".format(state.totalExpense)}", colors)
                 }
             }
 
-            // Dark mode toggle
+            // ── Dark mode toggle ──────────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -133,7 +128,7 @@ fun ProfileScreen(
                         Icon(
                             if (isDarkMode) Icons.Default.NightlightRound else Icons.Default.LightMode,
                             contentDescription = null,
-                            tint = colors.accentBlue,
+                            tint     = colors.accentGreen,
                             modifier = Modifier.size(22.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -141,8 +136,7 @@ fun ProfileScreen(
                             Text(
                                 if (isDarkMode) "Dark Mode" else "Light Mode",
                                 style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = colors.textPrimary,
-                                    fontWeight = FontWeight.Medium
+                                    color = colors.textPrimary, fontWeight = FontWeight.Medium
                                 )
                             )
                             Text(
@@ -155,16 +149,16 @@ fun ProfileScreen(
                         checked = isDarkMode,
                         onCheckedChange = { onToggleDarkMode() },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = colors.accentBlue,
+                            checkedThumbColor   = if (colors.isDark) Color.Black else Color.White,
+                            checkedTrackColor   = colors.accentGreen,
                             uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = colors.accentGreen
+                            uncheckedTrackColor = colors.accentGreen.copy(alpha = 0.4f)
                         )
                     )
                 }
             }
 
-            // Add past history
+            // ── Add past transaction ──────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier
@@ -199,7 +193,7 @@ fun ProfileScreen(
                 }
             }
 
-            // Reset data
+            // ── Reset data ────────────────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier
@@ -234,7 +228,7 @@ fun ProfileScreen(
                 }
             }
 
-            // Success toast
+            // ── Success toast ─────────────────────────────────────────────────
             AnimatedVisibility(visible = state.successMessage != null) {
                 Box(
                     modifier = Modifier
@@ -253,7 +247,6 @@ fun ProfileScreen(
         }
     }
 
-    // Dialogs
     if (state.resetConfirmVisible) {
         ResetConfirmDialog(
             onConfirm = { viewModel.resetAllData() },
@@ -272,8 +265,10 @@ fun ProfileScreen(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun StatChip(label: String, value: String, colors: com.example.zorvyn_task.ui.theme.AppColors) {
+private fun StatChip(label: String, value: String, colors: AppColors) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(value, style = MaterialTheme.typography.titleMedium.copy(
             color = colors.textPrimary, fontWeight = FontWeight.SemiBold))
@@ -283,10 +278,12 @@ private fun StatChip(label: String, value: String, colors: com.example.zorvyn_ta
 
 @Composable
 private fun ResetConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    val colors = LocalAppColors.current
+    val colors         = LocalAppColors.current
+    val containerColor = if (colors.isDark) Color(0xFF0D1A0D) else Color(0xFFE8F5F0)
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = if (colors.isDark) Color(0xFF1A1F3E) else Color(0xFFE8F5F0),
+        containerColor   = containerColor,
         icon = {
             Icon(Icons.Default.Warning, contentDescription = null,
                 tint = colors.accentRed, modifier = Modifier.size(32.dp))
@@ -307,12 +304,12 @@ private fun ResetConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = colors.textSecondary)
-            }
+            TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textSecondary) }
         }
     )
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 private val EXPENSE_CATEGORIES = listOf(
     "🍔 Food","🚗 Transport","🛍️ Shopping","🏥 Health",
@@ -328,25 +325,93 @@ private fun AddPastTransactionDialog(
     onConfirm: (Double, TransactionType, String, String?, Long) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val colors = LocalAppColors.current
-    var amount by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf(TransactionType.EXPENSE) }
-    var category by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
-    var dateText by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
+    val colors         = LocalAppColors.current
+    val containerColor = if (colors.isDark) Color(0xFF0D1A0D) else Color(0xFFF0FAF6)
+    val fieldBg        = if (colors.isDark) Color(0xFF1A2A1A) else Color(0xFFFFFFFF)
 
-    val sdf = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+    var amount   by remember { mutableStateOf("") }
+    var type     by remember { mutableStateOf(TransactionType.EXPENSE) }
+    var category by remember { mutableStateOf("") }
+    var note     by remember { mutableStateOf("") }
+    var error    by remember { mutableStateOf<String?>(null) }
+
+    // ── Date picker ───────────────────────────────────────────────────────────
+    var showDatePicker  by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis(),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) =
+                utcTimeMillis <= System.currentTimeMillis()
+        }
+    )
+    val displayFmt         = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val selectedDateMillis = datePickerState.selectedDateMillis
+    val selectedDateLabel  = selectedDateMillis
+        ?.let { displayFmt.format(Date(it)) }
+        ?: "Tap to select"
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = { showDatePicker = false; error = null }) {
+                    Text("OK", color = colors.accentGreen, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel", color = colors.textSecondary)
+                }
+            },
+            colors = DatePickerDefaults.colors(
+                containerColor             = containerColor,
+                titleContentColor          = colors.textPrimary,
+                headlineContentColor       = colors.textPrimary,
+                weekdayContentColor        = colors.textSecondary,
+                subheadContentColor        = colors.textSecondary,
+                navigationContentColor     = colors.textPrimary,
+                yearContentColor           = colors.textPrimary,
+                currentYearContentColor    = colors.accentGreen,
+                selectedYearContentColor   = if (colors.isDark) Color.Black else Color.White,
+                selectedYearContainerColor = colors.accentGreen,
+                dayContentColor            = colors.textPrimary,
+                selectedDayContentColor    = if (colors.isDark) Color.Black else Color.White,
+                selectedDayContainerColor  = colors.accentGreen,
+                todayContentColor          = colors.accentGreen,
+                todayDateBorderColor       = colors.accentGreen,
+            )
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    // ── Shared field colours ──────────────────────────────────────────────────
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor          = colors.textPrimary,
+        unfocusedTextColor        = colors.textPrimary,
+        focusedBorderColor        = colors.accentGreen,
+        unfocusedBorderColor      = colors.glassBorder,
+        focusedLabelColor         = colors.accentGreen,
+        unfocusedLabelColor       = colors.textSecondary,
+        cursorColor               = colors.accentGreen,
+        focusedContainerColor     = fieldBg,
+        unfocusedContainerColor   = fieldBg,
+        focusedPlaceholderColor   = colors.textTertiary,
+        unfocusedPlaceholderColor = colors.textTertiary,
+    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = if (colors.isDark) Color(0xFF1A1F3E) else Color(0xFFF0FAF6),
+        containerColor   = containerColor,
         title = {
-            Text("Add Past Transaction",
-                style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary))
+            Text(
+                "Add Past Transaction",
+                style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary)
+            )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
                 // Type toggle
                 Row(
                     modifier = Modifier
@@ -356,15 +421,13 @@ private fun AddPastTransactionDialog(
                         .padding(4.dp)
                 ) {
                     listOf(TransactionType.EXPENSE, TransactionType.INCOME).forEach { t ->
-                        val selected = type == t
+                        val selected    = type == t
+                        val accentColor = if (t == TransactionType.EXPENSE) colors.accentRed else colors.accentGreen
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(
-                                    if (selected) (if (t == TransactionType.EXPENSE) colors.accentRed else colors.accentGreen).copy(alpha = 0.25f)
-                                    else Color.Transparent
-                                )
+                                .background(if (selected) accentColor.copy(alpha = 0.25f) else Color.Transparent)
                                 .clickable { type = t; category = "" }
                                 .padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center
@@ -372,7 +435,7 @@ private fun AddPastTransactionDialog(
                             Text(
                                 if (t == TransactionType.EXPENSE) "Expense" else "Income",
                                 style = MaterialTheme.typography.labelMedium.copy(
-                                    color = if (selected) (if (t == TransactionType.EXPENSE) colors.accentRed else colors.accentGreen) else colors.textSecondary,
+                                    color      = if (selected) accentColor else colors.textSecondary,
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                                 )
                             )
@@ -380,72 +443,98 @@ private fun AddPastTransactionDialog(
                     }
                 }
 
-                val fieldColors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = colors.textPrimary,
-                    unfocusedTextColor = colors.textPrimary,
-                    focusedBorderColor = colors.accentBlue,
-                    unfocusedBorderColor = colors.glassBorder,
-                    cursorColor = colors.accentBlue,
-                    focusedContainerColor = colors.glassWhite10,
-                    unfocusedContainerColor = colors.glassWhite10
-                )
-
+                // Amount
                 OutlinedTextField(
-                    value = amount,
+                    value         = amount,
                     onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text("Amount (₹)", color = colors.textSecondary) },
+                    label         = { Text("Amount (₹)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    colors = fieldColors,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    singleLine    = true,
+                    colors        = fieldColors,
+                    modifier      = Modifier.fillMaxWidth(),
+                    shape         = RoundedCornerShape(10.dp)
                 )
 
                 // Category chips
+                Text("Category",
+                    style = MaterialTheme.typography.labelSmall.copy(color = colors.textSecondary))
                 val categories = if (type == TransactionType.EXPENSE) EXPENSE_CATEGORIES else INCOME_CATEGORIES
-                Text("Category", style = MaterialTheme.typography.labelSmall.copy(color = colors.textSecondary))
-                androidx.compose.foundation.lazy.LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    items(categories.size) { i ->
-                        val cat = categories[i]
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(categories) { cat ->
                         val sel = category == cat
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(50))
-                                .background(if (sel) colors.accentBlue.copy(alpha = 0.25f) else colors.glassWhite10)
-                                .border(1.dp, if (sel) colors.accentBlue else colors.glassBorder, RoundedCornerShape(50))
+                                .background(if (sel) colors.accentGreen.copy(alpha = 0.20f) else colors.glassWhite10)
+                                .border(1.dp, if (sel) colors.accentGreen else colors.glassBorder, RoundedCornerShape(50))
                                 .clickable { category = cat }
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
                         ) {
                             Text(cat, style = MaterialTheme.typography.bodySmall.copy(
-                                color = if (sel) colors.accentBlue else colors.textSecondary
-                            ))
+                                color = if (sel) colors.accentGreen else colors.textSecondary))
                         }
                     }
                 }
 
+                // Note
                 OutlinedTextField(
-                    value = note,
+                    value         = note,
                     onValueChange = { note = it },
-                    label = { Text("Note (optional)", color = colors.textSecondary) },
-                    singleLine = true,
-                    colors = fieldColors,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    label         = { Text("Note (optional)") },
+                    singleLine    = true,
+                    colors        = fieldColors,
+                    modifier      = Modifier.fillMaxWidth(),
+                    shape         = RoundedCornerShape(10.dp)
                 )
 
-                OutlinedTextField(
-                    value = dateText,
-                    onValueChange = { dateText = it },
-                    label = { Text("Date (dd/MM/yyyy)", color = colors.textSecondary) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = fieldColors,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
-                )
+                // Date selector button (replaces manual text input)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(fieldBg)
+                        .border(
+                            width  = 1.dp,
+                            color  = if (error?.contains("date", ignoreCase = true) == true)
+                                colors.accentRed else colors.glassBorder,
+                            shape  = RoundedCornerShape(10.dp)
+                        )
+                        .clickable { showDatePicker = true }
+                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                ) {
+                    Row(
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier              = Modifier.fillMaxWidth()
+                    ) {
+                        Column {
+                            Text(
+                                "Date",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color    = colors.textSecondary,
+                                    fontSize = 11.sp
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                selectedDateLabel,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color      = if (selectedDateMillis != null) colors.textPrimary
+                                    else colors.textTertiary,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                        }
+                        Icon(
+                            Icons.Default.CalendarMonth,
+                            contentDescription = "Pick date",
+                            tint     = colors.accentGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
 
+                // Error
                 if (error != null) {
                     Text(error!!, style = MaterialTheme.typography.bodySmall.copy(color = colors.accentRed))
                 }
@@ -453,12 +542,12 @@ private fun AddPastTransactionDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                val amt = amount.toDoubleOrNull()
-                val date = try { sdf.parse(dateText)?.time } catch (e: Exception) { null }
+                val amt  = amount.toDoubleOrNull()
+                val date = selectedDateMillis
                 when {
                     amt == null || amt <= 0 -> error = "Enter a valid amount"
-                    category.isBlank() -> error = "Select a category"
-                    dateText.isBlank() || date == null -> error = "Enter a valid date (dd/MM/yyyy)"
+                    category.isBlank()      -> error = "Select a category"
+                    date == null            -> error = "Select a date"
                     else -> onConfirm(amt, type, category, note.ifBlank { null }, date)
                 }
             }) {

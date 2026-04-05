@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -47,6 +48,23 @@ fun AddTransactionScreen(
     val state by viewModel.uiState.collectAsState()
     val colors = LocalAppColors.current
 
+    // Solid field background so typed text is always readable
+    val fieldContainerColor = if (colors.isDark) Color(0xFF1A2040) else Color(0xFFFFFFFF)
+
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor      = colors.textPrimary,
+        unfocusedTextColor    = colors.textPrimary,
+        focusedBorderColor    = colors.accentBlue,
+        unfocusedBorderColor  = colors.glassBorder,
+        focusedLabelColor     = colors.accentBlue,
+        unfocusedLabelColor   = colors.textSecondary,
+        cursorColor           = colors.accentBlue,
+        focusedContainerColor   = fieldContainerColor,
+        unfocusedContainerColor = fieldContainerColor,
+        focusedPlaceholderColor   = colors.textTertiary,
+        unfocusedPlaceholderColor = colors.textTertiary,
+    )
+
     LaunchedEffect(state.saved) { if (state.saved) onNavigateBack() }
 
     GlassBackground(modifier = Modifier.fillMaxSize()) {
@@ -55,9 +73,12 @@ fun AddTransactionScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text("Add Transaction",
+                        Text(
+                            "Add Transaction",
                             style = MaterialTheme.typography.titleLarge.copy(
-                                color = colors.textPrimary, fontWeight = FontWeight.Light))
+                                color = colors.textPrimary, fontWeight = FontWeight.Light
+                            )
+                        )
                     },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
@@ -77,29 +98,47 @@ fun AddTransactionScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Spacer(modifier = Modifier.height(4.dp))
+
                 TypeToggle(selected = state.type, onSelect = viewModel::setType)
 
+                // ── Amount ────────────────────────────────────────────────────
                 GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
-                    Text("AMOUNT", style = MaterialTheme.typography.labelMedium.copy(
-                        color = colors.textSecondary, letterSpacing = 1.sp))
+                    Text(
+                        "AMOUNT",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = colors.textSecondary, letterSpacing = 1.sp
+                        )
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("₹", style = MaterialTheme.typography.headlineLarge.copy(
-                            color = if (state.type == TransactionType.INCOME) colors.accentGreen else colors.accentRed))
+                        Text(
+                            "₹",
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                color = if (state.type == TransactionType.INCOME)
+                                    colors.accentGreen else colors.accentRed
+                            )
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         AmountField(value = state.amount, onValueChange = viewModel::setAmount)
                     }
                 }
 
+                // ── Category ──────────────────────────────────────────────────
                 GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
-                    Text("CATEGORY", style = MaterialTheme.typography.labelMedium.copy(
-                        color = colors.textSecondary, letterSpacing = 1.sp))
+                    Text(
+                        "CATEGORY",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = colors.textSecondary, letterSpacing = 1.sp
+                        )
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
-                    val categories = if (state.type == TransactionType.EXPENSE) EXPENSE_CATEGORIES else INCOME_CATEGORIES
+                    val categories =
+                        if (state.type == TransactionType.EXPENSE) EXPENSE_CATEGORIES
+                        else INCOME_CATEGORIES
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(categories) { cat ->
                             CategoryChip(
-                                label = cat,
+                                label    = cat,
                                 selected = state.category == cat,
                                 onSelect = { viewModel.setCategory(cat) }
                             )
@@ -107,36 +146,37 @@ fun AddTransactionScreen(
                     }
                 }
 
+                // ── Note ──────────────────────────────────────────────────────
                 GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
-                    Text("NOTE (optional)", style = MaterialTheme.typography.labelMedium.copy(
-                        color = colors.textSecondary, letterSpacing = 1.sp))
+                    Text(
+                        "NOTE (optional)",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = colors.textSecondary, letterSpacing = 1.sp
+                        )
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
-                        value = state.note,
-                        onValueChange = viewModel::setNote,
-                        placeholder = { Text("Add a note…", color = colors.textTertiary) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = false,
-                        maxLines = 3,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = colors.textPrimary,
-                            unfocusedTextColor = colors.textPrimary,
-                            focusedBorderColor = colors.accentBlue,
-                            unfocusedBorderColor = colors.glassBorder,
-                            cursorColor = colors.accentBlue,
-                            focusedContainerColor = colors.glassWhite10,
-                            unfocusedContainerColor = colors.glassWhite10
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                        value          = state.note,
+                        onValueChange  = viewModel::setNote,
+                        placeholder    = { Text("Add a note…") },
+                        modifier       = Modifier.fillMaxWidth(),
+                        singleLine     = false,
+                        maxLines       = 3,
+                        colors         = fieldColors,
+                        shape          = RoundedCornerShape(12.dp)
                     )
                 }
 
+                // ── Error ─────────────────────────────────────────────────────
                 AnimatedVisibility(visible = state.error != null) {
-                    Text(state.error ?: "",
+                    Text(
+                        state.error ?: "",
                         style = MaterialTheme.typography.bodySmall.copy(color = colors.accentRed),
-                        modifier = Modifier.fillMaxWidth())
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
 
+                // ── Save button ───────────────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -154,14 +194,21 @@ fun AddTransactionScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     if (state.isSaving) {
-                        CircularProgressIndicator(color = Color.White,
-                            modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(
+                            color    = Color.White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
                     } else {
-                        Text("Save Transaction",
+                        Text(
+                            "Save Transaction",
                             style = MaterialTheme.typography.titleMedium.copy(
-                                color = Color.White, fontWeight = FontWeight.Medium))
+                                color = Color.White, fontWeight = FontWeight.Medium
+                            )
+                        )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }
@@ -172,16 +219,24 @@ fun AddTransactionScreen(
 private fun AmountField(value: String, onValueChange: (String) -> Unit) {
     val colors = LocalAppColors.current
     BasicTextField(
-        value = value,
+        value         = value,
         onValueChange = { new -> onValueChange(new.filter { c -> c.isDigit() || c == '.' }) },
-        textStyle = MaterialTheme.typography.headlineLarge.copy(
-            color = colors.textPrimary, fontWeight = FontWeight.Light),
+        textStyle     = MaterialTheme.typography.headlineLarge.copy(
+            color      = colors.textPrimary,   // always theme-correct colour
+            fontWeight = FontWeight.Light
+        ),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        singleLine = true,
-        decorationBox = { innerTextField ->
+        cursorBrush     = SolidColor(colors.accentBlue),
+        singleLine      = true,
+        decorationBox   = { innerTextField ->
             if (value.isEmpty()) {
-                Text("0.00", style = MaterialTheme.typography.headlineLarge.copy(
-                    color = colors.textTertiary, fontWeight = FontWeight.Light))
+                Text(
+                    "0.00",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        color      = colors.textTertiary,
+                        fontWeight = FontWeight.Light
+                    )
+                )
             }
             innerTextField()
         },
@@ -192,7 +247,7 @@ private fun AmountField(value: String, onValueChange: (String) -> Unit) {
 @Composable
 private fun TypeToggle(selected: TransactionType, onSelect: (TransactionType) -> Unit) {
     val colors = LocalAppColors.current
-    val shape = RoundedCornerShape(16.dp)
+    val shape  = RoundedCornerShape(16.dp)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -204,8 +259,8 @@ private fun TypeToggle(selected: TransactionType, onSelect: (TransactionType) ->
     ) {
         listOf(TransactionType.EXPENSE, TransactionType.INCOME).forEach { type ->
             val isSelected = selected == type
-            val label = if (type == TransactionType.EXPENSE) "Expense" else "Income"
-            val color = if (type == TransactionType.EXPENSE) colors.accentRed else colors.accentGreen
+            val label      = if (type == TransactionType.EXPENSE) "Expense" else "Income"
+            val color      = if (type == TransactionType.EXPENSE) colors.accentRed else colors.accentGreen
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -213,16 +268,20 @@ private fun TypeToggle(selected: TransactionType, onSelect: (TransactionType) ->
                     .clip(RoundedCornerShape(12.dp))
                     .background(if (isSelected) color.copy(alpha = 0.25f) else Color.Transparent)
                     .border(
-                        width = if (isSelected) 1.dp else 0.dp,
-                        color = if (isSelected) color.copy(alpha = 0.6f) else Color.Transparent,
-                        shape = RoundedCornerShape(12.dp)
+                        width  = if (isSelected) 1.dp else 0.dp,
+                        color  = if (isSelected) color.copy(alpha = 0.6f) else Color.Transparent,
+                        shape  = RoundedCornerShape(12.dp)
                     )
                     .clickable { onSelect(type) },
                 contentAlignment = Alignment.Center
             ) {
-                Text(label, style = MaterialTheme.typography.titleMedium.copy(
-                    color = if (isSelected) color else colors.textSecondary,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal))
+                Text(
+                    label,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color      = if (isSelected) color else colors.textSecondary,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                    )
+                )
             }
         }
     }
@@ -231,7 +290,7 @@ private fun TypeToggle(selected: TransactionType, onSelect: (TransactionType) ->
 @Composable
 private fun CategoryChip(label: String, selected: Boolean, onSelect: () -> Unit) {
     val colors = LocalAppColors.current
-    val shape = RoundedCornerShape(50)
+    val shape  = RoundedCornerShape(50)
     Box(
         modifier = Modifier
             .clip(shape)
@@ -240,8 +299,12 @@ private fun CategoryChip(label: String, selected: Boolean, onSelect: () -> Unit)
             .clickable(onClick = onSelect)
             .padding(horizontal = 14.dp, vertical = 8.dp)
     ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium.copy(
-            color = if (selected) colors.textPrimary else colors.textSecondary,
-            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal))
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color      = if (selected) colors.textPrimary else colors.textSecondary,
+                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
+            )
+        )
     }
 }

@@ -2,22 +2,23 @@ package com.example.zorvyn_task.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ── Dark theme (original deep blue-purple glass) ──────────────────────────────
-val DarkBgTop    = Color(0xFF0A0F2E)
-val DarkBgMid    = Color(0xFF0D1F4E)
-val DarkBgBottom = Color(0xFF1A0A3C)
+// ── Dark theme (black + mint green) ───────────────────────────────────────────
+val DarkBgTop    = Color(0xFF000000)
+val DarkBgMid    = Color(0xFF0A0A0A)
+val DarkBgBottom = Color(0xFF111111)
 
 val DarkGlassWhite    = Color(0xFFFFFFFF)
 val DarkGlassWhite70  = Color(0xB3FFFFFF)
 val DarkGlassWhite40  = Color(0x66FFFFFF)
 val DarkGlassWhite15  = Color(0x26FFFFFF)
 val DarkGlassWhite10  = Color(0x1AFFFFFF)
-val DarkGlassBorder   = Color(0x33FFFFFF)
+val DarkGlassBorder       = Color(0x33FFFFFF)
 val DarkGlassBorderStrong = Color(0x55FFFFFF)
 
-val DarkAccentGreen = Color(0xFF34D399)
+// Mint green as the primary accent in dark mode
+val DarkAccentGreen = Color(0xFF3DDC84)   // vivid mint
 val DarkAccentRed   = Color(0xFFFC8181)
-val DarkAccentBlue  = Color(0xFF60A5FA)
+val DarkAccentBlue  = Color(0xFF3DDC84)   // mint replaces blue as primary accent
 
 val DarkTextPrimary   = Color(0xFFFFFFFF)
 val DarkTextSecondary = Color(0xB3FFFFFF)
@@ -33,7 +34,7 @@ val LightGlassWhite70  = Color(0xB3FFFFFF)
 val LightGlassWhite40  = Color(0x99FFFFFF)
 val LightGlassWhite15  = Color(0x55FFFFFF)
 val LightGlassWhite10  = Color(0x44FFFFFF)
-val LightGlassBorder   = Color(0x4A072D24)
+val LightGlassBorder       = Color(0x4A072D24)
 val LightGlassBorderStrong = Color(0x7A072D24)
 
 val LightAccentGreen = Color(0xFF0D9E6A)
@@ -48,14 +49,13 @@ val LightCardBg        = Color(0xCCFFFFFF)
 val LightCardBgAlt     = Color(0xAAFFFFFF)
 val LightDark          = Color(0xFF072D24)
 
-// ── Aliases (resolved at runtime by theme) ─────────────────────────────────────
-// Keep old names so existing screens compile; ThemeHelper picks the right set.
-val GlassWhite    = DarkGlassWhite
-val GlassWhite70  = DarkGlassWhite70
-val GlassWhite40  = DarkGlassWhite40
-val GlassWhite15  = DarkGlassWhite15
-val GlassWhite10  = DarkGlassWhite10
-val GlassBorder   = DarkGlassBorder
+// ── Aliases (keep existing screens compiling) ──────────────────────────────────
+val GlassWhite        = DarkGlassWhite
+val GlassWhite70      = DarkGlassWhite70
+val GlassWhite40      = DarkGlassWhite40
+val GlassWhite15      = DarkGlassWhite15
+val GlassWhite10      = DarkGlassWhite10
+val GlassBorder       = DarkGlassBorder
 val GlassBorderStrong = DarkGlassBorderStrong
 
 val BgTop    = DarkBgTop
