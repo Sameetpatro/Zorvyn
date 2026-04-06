@@ -480,8 +480,6 @@ private fun TransactionHistorySection(
     }
 }
 
-// ── Swipeable transaction item (FIXED — actions hidden behind, revealed on swipe) ──
-
 @Composable
 private fun SwipeableTransactionItem(
     transaction: TransactionEntity,
@@ -495,55 +493,56 @@ private fun SwipeableTransactionItem(
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
         label = "swipeOffset"
     )
-    // How far to swipe before snap, and max reveal width
     val threshold = 60f
-    val maxReveal = 120f
+    val maxReveal = 80f
 
     Box(modifier = Modifier.fillMaxWidth()) {
-        // Action buttons — positioned at the END (right side), only visible when swiped
-        Row(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .width(maxReveal.dp)
-                .padding(start = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        if (animOffset > 8f) {
             Box(
                 modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(colors.accentGreen.copy(alpha = 0.20f))
-                    .border(1.dp, colors.accentGreen.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
-                    .clickable { offsetX = 0f; onEdit() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = colors.accentGreen, modifier = Modifier.size(20.dp))
-            }
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
+                    .align(Alignment.CenterStart)
+                    .width(maxReveal.dp)
+                    .height(60.dp)               // matches TransactionItem inner height
                     .clip(RoundedCornerShape(14.dp))
                     .background(colors.accentRed.copy(alpha = 0.20f))
                     .border(1.dp, colors.accentRed.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
                     .clickable { offsetX = 0f; onDelete() },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = colors.accentRed, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = colors.accentRed, modifier = Modifier.size(22.dp))
             }
         }
-
-        // The transaction card slides left to reveal the buttons behind it
+        if (animOffset < -8f) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(maxReveal.dp)
+                    .height(60.dp)               // matches TransactionItem inner height
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colors.accentGreen.copy(alpha = 0.20f))
+                    .border(1.dp, colors.accentGreen.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                    .clickable { offsetX = 0f; onEdit() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = colors.accentGreen, modifier = Modifier.size(22.dp))
+            }
+        }
         Box(
             modifier = Modifier
                 .offset { IntOffset(animOffset.roundToInt(), 0) }
+                .fillMaxWidth()
+                .background(if (colors.isDark) Color(0xFF111111) else Color(0xFFEEF7F2))
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
-                        offsetX = (offsetX + delta).coerceIn(-maxReveal, 0f)
+                        offsetX = (offsetX + delta).coerceIn(-maxReveal, maxReveal)
                     },
                     onDragStopped = {
-                        offsetX = if (offsetX < -threshold) -maxReveal else 0f
+                        offsetX = when {
+                            offsetX < -threshold -> -maxReveal
+                            offsetX > threshold  ->  maxReveal
+                            else                 ->  0f
+                        }
                     }
                 )
                 .clickable { if (animOffset != 0f) offsetX = 0f }
@@ -553,7 +552,6 @@ private fun SwipeableTransactionItem(
     }
 }
 
-// ── Dialogs ───────────────────────────────────────────────────────────────────
 
 @Composable
 private fun StatChip(label: String, value: String, colors: AppColors) {
