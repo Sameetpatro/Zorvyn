@@ -1,15 +1,21 @@
 package com.example.zorvyn_task.ui.profile
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,17 +27,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.zorvyn_task.data.local.TransactionEntity
 import com.example.zorvyn_task.data.local.TransactionType
 import com.example.zorvyn_task.ui.components.GlassBackground
 import com.example.zorvyn_task.ui.components.GlassCard
+import com.example.zorvyn_task.ui.home.TransactionItem
 import com.example.zorvyn_task.ui.theme.AppColors
 import com.example.zorvyn_task.ui.theme.LocalAppColors
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
+
+private val EXPENSE_CATEGORIES = listOf(
+    "🍔 Food", "🚗 Transport", "🛍️ Shopping", "🏥 Health",
+    "🎬 Entertainment", "🏠 Housing", "📱 Utilities", "📚 Education", "✈️ Travel", "💡 Other"
+)
+private val INCOME_CATEGORIES = listOf(
+    "💼 Salary", "💰 Freelance", "📈 Investment", "🎁 Gift", "💳 Refund", "💡 Other"
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +61,8 @@ fun ProfileScreen(
 ) {
     val state = viewModel.uiState.collectAsState().value
     val colors = LocalAppColors.current
+
+    var showTransactionHistory by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.successMessage, state.errorMessage) {
         if (state.successMessage != null || state.errorMessage != null) {
@@ -66,6 +87,7 @@ fun ProfileScreen(
                 )
             )
 
+            // ── Avatar + stats card ───────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 24.dp) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -73,9 +95,7 @@ fun ProfileScreen(
                             .size(64.dp)
                             .clip(CircleShape)
                             .background(
-                                Brush.linearGradient(
-                                    listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.6f))
-                                )
+                                Brush.linearGradient(listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.6f)))
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -95,27 +115,20 @@ fun ProfileScreen(
                             )
                         )
                         Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            "Zorvyn Finance",
-                            style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary)
-                        )
+                        Text("Zorvyn Finance", style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary))
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = colors.glassBorder, thickness = 0.5.dp)
                 Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                     StatChip("Transactions", state.transactionCount.toString(), colors)
                     StatChip("Income", "₹${"%.0f".format(state.totalIncome)}", colors)
                     StatChip("Expense", "₹${"%.0f".format(state.totalExpense)}", colors)
                 }
             }
 
+            // ── Dark mode toggle ──────────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -125,17 +138,13 @@ fun ProfileScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             if (isDarkMode) Icons.Default.NightlightRound else Icons.Default.LightMode,
-                            contentDescription = null,
-                            tint = colors.accentGreen,
-                            modifier = Modifier.size(22.dp)
+                            contentDescription = null, tint = colors.accentGreen, modifier = Modifier.size(22.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
                                 if (isDarkMode) "Dark Mode" else "Light Mode",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = colors.textPrimary, fontWeight = FontWeight.Medium
-                                )
+                                style = MaterialTheme.typography.bodyLarge.copy(color = colors.textPrimary, fontWeight = FontWeight.Medium)
                             )
                             Text(
                                 if (isDarkMode) "Switch to mint light theme" else "Switch to dark theme",
@@ -156,6 +165,58 @@ fun ProfileScreen(
                 }
             }
 
+            // ── Transaction History card ──────────────────────────────────────
+            GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showTransactionHistory = !showTransactionHistory },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(colors.accentGreen.copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.History, contentDescription = null, tint = colors.accentGreen, modifier = Modifier.size(22.dp))
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Check All Transactions",
+                            style = MaterialTheme.typography.bodyLarge.copy(color = colors.textPrimary, fontWeight = FontWeight.Medium)
+                        )
+                        Text(
+                            "Search, edit or delete your transactions",
+                            style = MaterialTheme.typography.bodySmall.copy(color = colors.textTertiary)
+                        )
+                    }
+                    Icon(
+                        if (showTransactionHistory) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null, tint = colors.textTertiary
+                    )
+                }
+
+                AnimatedVisibility(visible = showTransactionHistory) {
+                    Column(modifier = Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        HorizontalDivider(color = colors.glassBorder, thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TransactionHistorySection(
+                            transactions = state.allTransactions,
+                            searchQuery = state.searchQuery,
+                            activeFilter = state.activeFilter,
+                            onSearchChange = { viewModel.setSearchQuery(it) },
+                            onFilterChange = { viewModel.setFilter(it) },
+                            onEdit = { viewModel.startEdit(it) },
+                            onDelete = { viewModel.promptDelete(it) }
+                        )
+                    }
+                }
+            }
+
+            // ── Add past transaction ──────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier
@@ -170,7 +231,7 @@ fun ProfileScreen(
                             .background(colors.accentGreen.copy(alpha = 0.15f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.History, contentDescription = null, tint = colors.accentGreen, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Default.AddCircleOutline, contentDescription = null, tint = colors.accentGreen, modifier = Modifier.size(22.dp))
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -187,6 +248,7 @@ fun ProfileScreen(
                 }
             }
 
+            // ── Reset data ────────────────────────────────────────────────────
             GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
                 Row(
                     modifier = Modifier
@@ -222,6 +284,7 @@ fun ProfileScreen(
                 }
             }
 
+            // ── Success / Error toasts ────────────────────────────────────────
             AnimatedVisibility(visible = state.successMessage != null) {
                 Box(
                     modifier = Modifier
@@ -257,10 +320,7 @@ fun ProfileScreen(
     }
 
     if (state.resetConfirmVisible) {
-        ResetConfirmDialog(
-            onConfirm = { viewModel.resetAllData() },
-            onDismiss = { viewModel.hideResetConfirm() }
-        )
+        ResetConfirmDialog(onConfirm = { viewModel.resetAllData() }, onDismiss = { viewModel.hideResetConfirm() })
     }
 
     if (state.addHistoryVisible) {
@@ -272,7 +332,228 @@ fun ProfileScreen(
             onDismiss = { viewModel.hideAddHistory() }
         )
     }
+
+    if (state.editingTransaction != null) {
+        EditTransactionDialog(
+            transaction = state.editingTransaction!!,
+            onConfirm = { amount, type, category, note, date ->
+                viewModel.saveEdit(state.editingTransaction!!.id, amount, type, category, note, date)
+            },
+            onDismiss = { viewModel.cancelEdit() }
+        )
+    }
+
+    if (state.showDeleteConfirm != null) {
+        DeleteConfirmDialog(
+            transaction = state.showDeleteConfirm!!,
+            onConfirm = { viewModel.confirmDelete() },
+            onDismiss = { viewModel.cancelDelete() }
+        )
+    }
 }
+
+// ── Transaction History Section ───────────────────────────────────────────────
+
+@Composable
+private fun TransactionHistorySection(
+    transactions: List<TransactionEntity>,
+    searchQuery: String,
+    activeFilter: TransactionFilter,
+    onSearchChange: (String) -> Unit,
+    onFilterChange: (TransactionFilter) -> Unit,
+    onEdit: (TransactionEntity) -> Unit,
+    onDelete: (TransactionEntity) -> Unit
+) {
+    val colors = LocalAppColors.current
+
+    // Search bar
+    val searchShape = RoundedCornerShape(12.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(searchShape)
+            .background(colors.glassWhite10)
+            .border(1.dp, colors.glassBorder, searchShape)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(Icons.Default.Search, contentDescription = null, tint = colors.textTertiary, modifier = Modifier.size(18.dp))
+        BasicTextField(
+            value = searchQuery,
+            onValueChange = onSearchChange,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = colors.textPrimary),
+            cursorBrush = SolidColor(colors.accentGreen),
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+            decorationBox = { inner ->
+                if (searchQuery.isEmpty()) {
+                    Text("Search by category or note…", style = MaterialTheme.typography.bodyMedium.copy(color = colors.textTertiary))
+                }
+                inner()
+            }
+        )
+        if (searchQuery.isNotEmpty()) {
+            Icon(
+                Icons.Default.Close, contentDescription = null, tint = colors.textTertiary,
+                modifier = Modifier.size(16.dp).clickable { onSearchChange("") }
+            )
+        }
+    }
+
+    // Filter chips
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(TransactionFilter.values()) { filter ->
+            val selected = activeFilter == filter
+            val label = when (filter) {
+                TransactionFilter.ALL -> "All"
+                TransactionFilter.INCOME -> "Income"
+                TransactionFilter.EXPENSE -> "Expense"
+            }
+            val chipShape = RoundedCornerShape(50)
+            Box(
+                modifier = Modifier
+                    .clip(chipShape)
+                    .background(if (selected) colors.accentGreen.copy(alpha = 0.20f) else colors.glassWhite10)
+                    .border(1.dp, if (selected) colors.accentGreen.copy(alpha = 0.6f) else colors.glassBorder, chipShape)
+                    .clickable { onFilterChange(filter) }
+                    .padding(horizontal = 14.dp, vertical = 7.dp)
+            ) {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = if (selected) colors.accentGreen else colors.textSecondary,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                    )
+                )
+            }
+        }
+    }
+
+    // Filter the transactions
+    val filtered = transactions.filter { tx ->
+        val matchesFilter = when (activeFilter) {
+            TransactionFilter.ALL -> true
+            TransactionFilter.INCOME -> tx.type == TransactionType.INCOME
+            TransactionFilter.EXPENSE -> tx.type == TransactionType.EXPENSE
+        }
+        val matchesQuery = searchQuery.isBlank() ||
+                tx.category.contains(searchQuery, ignoreCase = true) ||
+                tx.note?.contains(searchQuery, ignoreCase = true) == true
+        matchesFilter && matchesQuery
+    }
+
+    // Result label
+    Text(
+        if (searchQuery.isBlank() && activeFilter == TransactionFilter.ALL)
+            "All Transactions (${transactions.size})"
+        else
+            "Results (${filtered.size})",
+        style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary)
+    )
+
+    // Transaction list — use Column since we're already inside a scroll
+    if (filtered.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if (transactions.isEmpty()) "💸" else "🔍", fontSize = 28.sp)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    if (transactions.isEmpty()) "No transactions yet" else "No results found",
+                    style = MaterialTheme.typography.bodySmall.copy(color = colors.textTertiary)
+                )
+            }
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            filtered.forEach { transaction ->
+                SwipeableTransactionItem(
+                    transaction = transaction,
+                    onEdit = { onEdit(transaction) },
+                    onDelete = { onDelete(transaction) }
+                )
+            }
+        }
+    }
+}
+
+// ── Swipeable transaction item (FIXED — actions hidden behind, revealed on swipe) ──
+
+@Composable
+private fun SwipeableTransactionItem(
+    transaction: TransactionEntity,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val colors = LocalAppColors.current
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val animOffset by animateFloatAsState(
+        targetValue = offsetX,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "swipeOffset"
+    )
+    // How far to swipe before snap, and max reveal width
+    val threshold = 60f
+    val maxReveal = 120f
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // Action buttons — positioned at the END (right side), only visible when swiped
+        Row(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(maxReveal.dp)
+                .padding(start = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colors.accentGreen.copy(alpha = 0.20f))
+                    .border(1.dp, colors.accentGreen.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                    .clickable { offsetX = 0f; onEdit() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = colors.accentGreen, modifier = Modifier.size(20.dp))
+            }
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colors.accentRed.copy(alpha = 0.20f))
+                    .border(1.dp, colors.accentRed.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                    .clickable { offsetX = 0f; onDelete() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = colors.accentRed, modifier = Modifier.size(20.dp))
+            }
+        }
+
+        // The transaction card slides left to reveal the buttons behind it
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(animOffset.roundToInt(), 0) }
+                .draggable(
+                    orientation = Orientation.Horizontal,
+                    state = rememberDraggableState { delta ->
+                        offsetX = (offsetX + delta).coerceIn(-maxReveal, 0f)
+                    },
+                    onDragStopped = {
+                        offsetX = if (offsetX < -threshold) -maxReveal else 0f
+                    }
+                )
+                .clickable { if (animOffset != 0f) offsetX = 0f }
+        ) {
+            TransactionItem(transaction = transaction)
+        }
+    }
+}
+
+// ── Dialogs ───────────────────────────────────────────────────────────────────
 
 @Composable
 private fun StatChip(label: String, value: String, colors: AppColors) {
@@ -289,12 +570,8 @@ private fun ResetConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = containerColor,
-        icon = {
-            Icon(Icons.Default.Warning, contentDescription = null, tint = colors.accentRed, modifier = Modifier.size(32.dp))
-        },
-        title = {
-            Text("Reset All Data?", style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary))
-        },
+        icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = colors.accentRed, modifier = Modifier.size(32.dp)) },
+        title = { Text("Reset All Data?", style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary)) },
         text = {
             Text(
                 "This will permanently delete ALL your transactions. This action cannot be undone.",
@@ -302,9 +579,7 @@ private fun ResetConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
             )
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Delete Everything", color = colors.accentRed, fontWeight = FontWeight.Bold)
-            }
+            TextButton(onClick = onConfirm) { Text("Delete Everything", color = colors.accentRed, fontWeight = FontWeight.Bold) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textSecondary) }
@@ -312,17 +587,34 @@ private fun ResetConfirmDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
-private val EXPENSE_CATEGORIES = listOf(
-    "🍔 Food", "🚗 Transport", "🛍️ Shopping", "🏥 Health",
-    "🎬 Entertainment", "🏠 Housing", "📱 Utilities", "📚 Education", "✈️ Travel", "💡 Other"
-)
-private val INCOME_CATEGORIES = listOf(
-    "💼 Salary", "💰 Freelance", "📈 Investment", "🎁 Gift", "💳 Refund", "💡 Other"
-)
+@Composable
+private fun DeleteConfirmDialog(transaction: TransactionEntity, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    val colors = LocalAppColors.current
+    val containerColor = if (colors.isDark) Color(0xFF0D1A0D) else Color(0xFFE8F5F0)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = containerColor,
+        icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = colors.accentRed, modifier = Modifier.size(28.dp)) },
+        title = { Text("Delete Transaction?", style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary)) },
+        text = {
+            Text(
+                "This will permanently delete your ${transaction.category} transaction of ₹${"%.2f".format(transaction.amount)}.",
+                style = MaterialTheme.typography.bodyMedium.copy(color = colors.textSecondary)
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text("Delete", color = colors.accentRed, fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textSecondary) }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddPastTransactionDialog(
+private fun EditTransactionDialog(
+    transaction: TransactionEntity,
     onConfirm: (Double, TransactionType, String, String?, Long) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -330,28 +622,26 @@ private fun AddPastTransactionDialog(
     val containerColor = if (colors.isDark) Color(0xFF0D1A0D) else Color(0xFFF0FAF6)
     val fieldBg = if (colors.isDark) Color(0xFF1A2A1A) else Color(0xFFFFFFFF)
 
-    var amount by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf(TransactionType.EXPENSE) }
-    var category by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf(transaction.amount.toString()) }
+    var type by remember { mutableStateOf(transaction.type) }
+    var category by remember { mutableStateOf(transaction.category) }
+    var note by remember { mutableStateOf(transaction.note ?: "") }
     var error by remember { mutableStateOf<String?>(null) }
-
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = System.currentTimeMillis(),
+        initialSelectedDateMillis = transaction.date,
         selectableDates = object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= System.currentTimeMillis()
         }
     )
     val displayFmt = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
-    val selectedDateMillis = datePickerState.selectedDateMillis
-    val selectedDateLabel = selectedDateMillis?.let { displayFmt.format(Date(it)) } ?: "Tap to select"
+    val selectedDateLabel = datePickerState.selectedDateMillis?.let { displayFmt.format(Date(it)) } ?: "Tap to select"
 
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(onClick = { showDatePicker = false; error = null }) {
+                TextButton(onClick = { showDatePicker = false }) {
                     Text("OK", color = colors.accentGreen, fontWeight = FontWeight.Bold)
                 }
             },
@@ -378,44 +668,31 @@ private fun AddPastTransactionDialog(
     }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = colors.textPrimary,
-        unfocusedTextColor = colors.textPrimary,
-        focusedBorderColor = colors.accentGreen,
-        unfocusedBorderColor = colors.glassBorder,
-        focusedLabelColor = colors.accentGreen,
-        unfocusedLabelColor = colors.textSecondary,
+        focusedTextColor = colors.textPrimary, unfocusedTextColor = colors.textPrimary,
+        focusedBorderColor = colors.accentGreen, unfocusedBorderColor = colors.glassBorder,
+        focusedLabelColor = colors.accentGreen, unfocusedLabelColor = colors.textSecondary,
         cursorColor = colors.accentGreen,
-        focusedContainerColor = fieldBg,
-        unfocusedContainerColor = fieldBg,
-        focusedPlaceholderColor = colors.textTertiary,
-        unfocusedPlaceholderColor = colors.textTertiary,
+        focusedContainerColor = fieldBg, unfocusedContainerColor = fieldBg,
     )
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = containerColor,
-        title = {
-            Text("Add Past Transaction", style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary))
-        },
+        title = { Text("Edit Transaction", style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Type toggle
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(colors.glassWhite10)
-                        .padding(4.dp)
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                        .background(colors.glassWhite10).padding(4.dp)
                 ) {
                     listOf(TransactionType.EXPENSE, TransactionType.INCOME).forEach { t ->
                         val selected = type == t
                         val accentColor = if (t == TransactionType.EXPENSE) colors.accentRed else colors.accentGreen
                         Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
+                            modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
                                 .background(if (selected) accentColor.copy(alpha = 0.25f) else Color.Transparent)
-                                .clickable { type = t; category = "" }
-                                .padding(vertical = 8.dp),
+                                .clickable { type = t; category = "" }.padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -428,65 +705,183 @@ private fun AddPastTransactionDialog(
                         }
                     }
                 }
-
                 OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
+                    value = amount, onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
                     label = { Text("Amount (₹)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    colors = fieldColors,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    singleLine = true, colors = fieldColors, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp)
                 )
-
                 Text("Category", style = MaterialTheme.typography.labelSmall.copy(color = colors.textSecondary))
                 val categories = if (type == TransactionType.EXPENSE) EXPENSE_CATEGORIES else INCOME_CATEGORIES
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     items(categories) { cat ->
                         val sel = category == cat
                         Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
+                            modifier = Modifier.clip(RoundedCornerShape(50))
                                 .background(if (sel) colors.accentGreen.copy(alpha = 0.20f) else colors.glassWhite10)
                                 .border(1.dp, if (sel) colors.accentGreen else colors.glassBorder, RoundedCornerShape(50))
-                                .clickable { category = cat }
-                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                                .clickable { category = cat }.padding(horizontal = 10.dp, vertical = 5.dp)
                         ) {
-                            Text(cat, style = MaterialTheme.typography.bodySmall.copy(
-                                color = if (sel) colors.accentGreen else colors.textSecondary))
+                            Text(cat, style = MaterialTheme.typography.bodySmall.copy(color = if (sel) colors.accentGreen else colors.textSecondary))
                         }
                     }
                 }
-
                 OutlinedTextField(
-                    value = note,
-                    onValueChange = { note = it },
+                    value = note, onValueChange = { note = it },
                     label = { Text("Note (optional)") },
-                    singleLine = true,
-                    colors = fieldColors,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
+                    singleLine = true, colors = fieldColors, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp)
                 )
-
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(fieldBg)
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(fieldBg)
+                        .border(1.dp, colors.glassBorder, RoundedCornerShape(10.dp))
+                        .clickable { showDatePicker = true }.padding(horizontal = 16.dp, vertical = 14.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            Text("Date", style = MaterialTheme.typography.labelSmall.copy(color = colors.textSecondary, fontSize = 11.sp))
+                            Spacer(Modifier.height(2.dp))
+                            Text(selectedDateLabel, style = MaterialTheme.typography.bodyMedium.copy(color = colors.textPrimary, fontWeight = FontWeight.Medium))
+                        }
+                        Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = colors.accentGreen, modifier = Modifier.size(20.dp))
+                    }
+                }
+                if (error != null) { Text(error!!, style = MaterialTheme.typography.bodySmall.copy(color = colors.accentRed)) }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val amt = amount.toDoubleOrNull()
+                val date = datePickerState.selectedDateMillis
+                when {
+                    amt == null || amt <= 0 -> error = "Enter a valid amount"
+                    category.isBlank() -> error = "Select a category"
+                    date == null -> error = "Select a date"
+                    else -> onConfirm(amt, type, category, note.ifBlank { null }, date)
+                }
+            }) { Text("Save", color = colors.accentGreen, fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textSecondary) }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddPastTransactionDialog(
+    onConfirm: (Double, TransactionType, String, String?, Long) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val colors = LocalAppColors.current
+    val containerColor = if (colors.isDark) Color(0xFF0D1A0D) else Color(0xFFF0FAF6)
+    val fieldBg = if (colors.isDark) Color(0xFF1A2A1A) else Color(0xFFFFFFFF)
+
+    var amount by remember { mutableStateOf("") }
+    var type by remember { mutableStateOf(TransactionType.EXPENSE) }
+    var category by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis(),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= System.currentTimeMillis()
+        }
+    )
+    val displayFmt = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val selectedDateMillis = datePickerState.selectedDateMillis
+    val selectedDateLabel = selectedDateMillis?.let { displayFmt.format(Date(it)) } ?: "Tap to select"
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = { showDatePicker = false; error = null }) {
+                    Text("OK", color = colors.accentGreen, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel", color = colors.textSecondary) } },
+            colors = DatePickerDefaults.colors(
+                containerColor = containerColor, titleContentColor = colors.textPrimary,
+                headlineContentColor = colors.textPrimary, weekdayContentColor = colors.textSecondary,
+                navigationContentColor = colors.textPrimary, yearContentColor = colors.textPrimary,
+                currentYearContentColor = colors.accentGreen,
+                selectedYearContentColor = if (colors.isDark) Color.Black else Color.White,
+                selectedYearContainerColor = colors.accentGreen, dayContentColor = colors.textPrimary,
+                selectedDayContentColor = if (colors.isDark) Color.Black else Color.White,
+                selectedDayContainerColor = colors.accentGreen, todayContentColor = colors.accentGreen,
+                todayDateBorderColor = colors.accentGreen,
+            )
+        ) { DatePicker(state = datePickerState) }
+    }
+
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = colors.textPrimary, unfocusedTextColor = colors.textPrimary,
+        focusedBorderColor = colors.accentGreen, unfocusedBorderColor = colors.glassBorder,
+        focusedLabelColor = colors.accentGreen, unfocusedLabelColor = colors.textSecondary,
+        cursorColor = colors.accentGreen, focusedContainerColor = fieldBg, unfocusedContainerColor = fieldBg,
+        focusedPlaceholderColor = colors.textTertiary, unfocusedPlaceholderColor = colors.textTertiary,
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss, containerColor = containerColor,
+        title = { Text("Add Past Transaction", style = MaterialTheme.typography.titleMedium.copy(color = colors.textPrimary)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(colors.glassWhite10).padding(4.dp)) {
+                    listOf(TransactionType.EXPENSE, TransactionType.INCOME).forEach { t ->
+                        val selected = type == t
+                        val accentColor = if (t == TransactionType.EXPENSE) colors.accentRed else colors.accentGreen
+                        Box(
+                            modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                                .background(if (selected) accentColor.copy(alpha = 0.25f) else Color.Transparent)
+                                .clickable { type = t; category = "" }.padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                if (t == TransactionType.EXPENSE) "Expense" else "Income",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = if (selected) accentColor else colors.textSecondary,
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = amount, onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
+                    label = { Text("Amount (₹)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true, colors = fieldColors, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp)
+                )
+                Text("Category", style = MaterialTheme.typography.labelSmall.copy(color = colors.textSecondary))
+                val categories = if (type == TransactionType.EXPENSE) EXPENSE_CATEGORIES else INCOME_CATEGORIES
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(categories) { cat ->
+                        val sel = category == cat
+                        Box(
+                            modifier = Modifier.clip(RoundedCornerShape(50))
+                                .background(if (sel) colors.accentGreen.copy(alpha = 0.20f) else colors.glassWhite10)
+                                .border(1.dp, if (sel) colors.accentGreen else colors.glassBorder, RoundedCornerShape(50))
+                                .clickable { category = cat }.padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            Text(cat, style = MaterialTheme.typography.bodySmall.copy(color = if (sel) colors.accentGreen else colors.textSecondary))
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = note, onValueChange = { note = it }, label = { Text("Note (optional)") },
+                    singleLine = true, colors = fieldColors, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp)
+                )
+                Box(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(fieldBg)
                         .border(
                             width = 1.dp,
                             color = if (error?.contains("date", ignoreCase = true) == true) colors.accentRed else colors.glassBorder,
                             shape = RoundedCornerShape(10.dp)
                         )
-                        .clickable { showDatePicker = true }
-                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                        .clickable { showDatePicker = true }.padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Column {
                             Text("Date", style = MaterialTheme.typography.labelSmall.copy(color = colors.textSecondary, fontSize = 11.sp))
                             Spacer(modifier = Modifier.height(2.dp))
@@ -501,10 +896,7 @@ private fun AddPastTransactionDialog(
                         Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = colors.accentGreen, modifier = Modifier.size(20.dp))
                     }
                 }
-
-                if (error != null) {
-                    Text(error!!, style = MaterialTheme.typography.bodySmall.copy(color = colors.accentRed))
-                }
+                if (error != null) { Text(error!!, style = MaterialTheme.typography.bodySmall.copy(color = colors.accentRed)) }
             }
         },
         confirmButton = {
@@ -517,12 +909,8 @@ private fun AddPastTransactionDialog(
                     date == null -> error = "Select a date"
                     else -> onConfirm(amt, type, category, note.ifBlank { null }, date)
                 }
-            }) {
-                Text("Add", color = colors.accentGreen, fontWeight = FontWeight.Bold)
-            }
+            }) { Text("Add", color = colors.accentGreen, fontWeight = FontWeight.Bold) }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textSecondary) }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textSecondary) } }
     )
 }
