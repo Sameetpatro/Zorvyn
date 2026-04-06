@@ -19,7 +19,8 @@ data class ProfileUiState(
     val resetConfirmVisible: Boolean = false,
     val addHistoryVisible: Boolean = false,
     val isLoading: Boolean = false,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+    val errorMessage: String? = null
 )
 
 class ProfileViewModel(
@@ -58,10 +59,12 @@ class ProfileViewModel(
     fun resetAllData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, resetConfirmVisible = false) }
-            transactionRepository.getAllTransactions().first().forEach {
-                transactionRepository.delete(it)
+            try {
+                transactionRepository.deleteAll()
+                _uiState.update { it.copy(isLoading = false, successMessage = "All data cleared") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Failed to clear data: ${e.message}") }
             }
-            _uiState.update { it.copy(isLoading = false, successMessage = "All data cleared") }
         }
     }
 
@@ -76,20 +79,24 @@ class ProfileViewModel(
         epochMillis: Long
     ) {
         viewModelScope.launch {
-            transactionRepository.insert(
-                TransactionEntity(
-                    amount   = amount,
-                    type     = type,
-                    category = category,
-                    note     = note,
-                    date     = epochMillis
+            try {
+                transactionRepository.insert(
+                    TransactionEntity(
+                        amount = amount,
+                        type = type,
+                        category = category,
+                        note = note,
+                        date = epochMillis
+                    )
                 )
-            )
-            _uiState.update { it.copy(successMessage = "Transaction added") }
+                _uiState.update { it.copy(successMessage = "Transaction added") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Failed to add: ${e.message}") }
+            }
         }
     }
 
-    fun clearMessage() = _uiState.update { it.copy(successMessage = null) }
+    fun clearMessage() = _uiState.update { it.copy(successMessage = null, errorMessage = null) }
 
     class Factory(
         private val userRepository: UserRepository,

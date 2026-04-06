@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -34,8 +33,6 @@ import com.example.zorvyn_task.ui.components.GlassCard
 import com.example.zorvyn_task.ui.theme.LocalAppColors
 import kotlin.math.abs
 import kotlin.math.roundToInt
-
-
 
 enum class FeedCardType { USEFUL, FUN, TIP, NEUTRAL }
 
@@ -57,18 +54,27 @@ fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
             cards += FeedCard(
                 emoji = "📅",
                 title = "Your Month So Far",
-                body  = "You've spent ₹${"%.0f".format(state.monthlyTotal)} this month. At this pace, your projected monthly total is ₹${"%.0f".format(projected)}.",
-                type  = FeedCardType.NEUTRAL,
-                tag   = "📈 Your Data"
+                body = "You've spent ₹${"%.0f".format(state.monthlyTotal)} this month. At this pace, your projected monthly total is ₹${"%.0f".format(projected)}.",
+                type = FeedCardType.NEUTRAL,
+                tag = "📈 Your Data"
             )
         }
         if (state.topCategory.isNotEmpty()) {
             cards += FeedCard(
                 emoji = "🏷️",
                 title = "Your Top Category",
-                body  = "${state.topCategory} is where most of your money goes — ₹${"%.0f".format(state.topCategoryAmount)} this month. Is this intentional?",
-                type  = FeedCardType.NEUTRAL,
-                tag   = "📈 Your Data"
+                body = "${state.topCategory} is where most of your money goes — ₹${"%.0f".format(state.topCategoryAmount)} this month. Is this intentional?",
+                type = FeedCardType.NEUTRAL,
+                tag = "📈 Your Data"
+            )
+        }
+        if (state.frequentTransactionType.isNotEmpty()) {
+            cards += FeedCard(
+                emoji = if (state.frequentTransactionType == "Income") "💼" else "🛒",
+                title = "Most Frequent Type",
+                body = "${state.frequentTransactionType} transactions are your most common — ${state.frequentTypeCount} total. ${if (state.frequentTransactionType == "Expense") "Tracking each one helps you spot patterns." else "Keep the income flowing!"}",
+                type = FeedCardType.USEFUL,
+                tag = "📈 Your Data"
             )
         }
         val change = state.weeklyChangePercent
@@ -78,9 +84,9 @@ fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
             cards += FeedCard(
                 emoji = if (change > 0) "📈" else "📉",
                 title = "Week-over-Week",
-                body  = "You spent $pct% $dir this week vs last week. ${if (change < 0) "Great trend — keep it going!" else "Your spending is climbing — worth a check."}",
-                type  = if (change < 0) FeedCardType.USEFUL else FeedCardType.NEUTRAL,
-                tag   = "📈 Your Data"
+                body = "You spent $pct% $dir this week vs last week. ${if (change < 0) "Great trend — keep it going!" else "Your spending is climbing — worth a check."}",
+                type = if (change < 0) FeedCardType.USEFUL else FeedCardType.NEUTRAL,
+                tag = "📈 Your Data"
             )
         }
         if (state.categoryTotals.size >= 3) {
@@ -90,9 +96,9 @@ fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
             cards += FeedCard(
                 emoji = "🧾",
                 title = "Your Top 3 Spends",
-                body  = "This month: $top3. Knowing where your money goes is the first step to directing it better.",
-                type  = FeedCardType.NEUTRAL,
-                tag   = "📈 Your Data"
+                body = "This month: $top3. Knowing where your money goes is the first step to directing it better.",
+                type = FeedCardType.NEUTRAL,
+                tag = "📈 Your Data"
             )
         }
     }
@@ -101,51 +107,51 @@ fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
         FeedCard(
             emoji = "☕",
             title = "The Latte Factor",
-            body  = "₹150/day on snacks or coffee = ₹54,750 a year. Small daily habits quietly shape your financial future.",
-            type  = FeedCardType.TIP,
-            tag   = "💡 Useful"
+            body = "₹150/day on snacks or coffee = ₹54,750 a year. Small daily habits quietly shape your financial future.",
+            type = FeedCardType.TIP,
+            tag = "💡 Useful"
         ),
         FeedCard(
             emoji = "📊",
             title = "The 50/30/20 Rule",
-            body  = "50% needs, 30% wants, 20% savings. The simplest budgeting framework that actually works long-term.",
-            type  = FeedCardType.USEFUL,
-            tag   = "💡 Useful"
+            body = "50% needs, 30% wants, 20% savings. The simplest budgeting framework that actually works long-term.",
+            type = FeedCardType.USEFUL,
+            tag = "💡 Useful"
         ),
         FeedCard(
             emoji = "🎯",
             title = "Pay Yourself First",
-            body  = "Auto-transfer to savings the moment your salary hits. If you save what's left after spending, you'll rarely save anything.",
-            type  = FeedCardType.TIP,
-            tag   = "💡 Useful"
+            body = "Auto-transfer to savings the moment your salary hits. If you save what's left after spending, you'll rarely save anything.",
+            type = FeedCardType.TIP,
+            tag = "💡 Useful"
         ),
         FeedCard(
             emoji = "🧠",
             title = "Anchoring Bias",
-            body  = "A ₹10,000 item marked down to ₹7,000 feels like a win — but you still spent ₹7,000. Sales are designed to make spending feel smart.",
-            type  = FeedCardType.FUN,
-            tag   = "🎉 Fun Fact"
+            body = "A ₹10,000 item marked down to ₹7,000 feels like a win — but you still spent ₹7,000. Sales are designed to make spending feel smart.",
+            type = FeedCardType.FUN,
+            tag = "🎉 Fun Fact"
         ),
         FeedCard(
             emoji = "🔄",
             title = "Compound Interest",
-            body  = "₹10,000 at 12% for 20 years becomes ₹96,462 — without adding a single rupee. Starting early matters more than the amount.",
-            type  = FeedCardType.USEFUL,
-            tag   = "💡 Useful"
+            body = "₹10,000 at 12% for 20 years becomes ₹96,462 — without adding a single rupee. Starting early matters more than the amount.",
+            type = FeedCardType.USEFUL,
+            tag = "💡 Useful"
         ),
         FeedCard(
             emoji = "🛍️",
             title = "The 24-Hour Rule",
-            body  = "Before any non-essential purchase above ₹500, wait 24 hours. Most impulse urges vanish by morning.",
-            type  = FeedCardType.TIP,
-            tag   = "💡 Useful"
+            body = "Before any non-essential purchase above ₹500, wait 24 hours. Most impulse urges vanish by morning.",
+            type = FeedCardType.TIP,
+            tag = "💡 Useful"
         ),
         FeedCard(
             emoji = "🎲",
             title = "Hedonic Adaptation",
-            body  = "The joy of a new phone fades in weeks — humans adapt to new things fast. Experiences tend to bring longer-lasting happiness than stuff.",
-            type  = FeedCardType.FUN,
-            tag   = "🎉 Fun Fact"
+            body = "The joy of a new phone fades in weeks — humans adapt to new things fast. Experiences tend to bring longer-lasting happiness than stuff.",
+            type = FeedCardType.FUN,
+            tag = "🎉 Fun Fact"
         )
     )
 
@@ -157,15 +163,12 @@ fun buildFeedCards(state: InsightsUiState): List<FeedCard> {
     return cards.take(7)
 }
 
-
-
 enum class InsightsTab { FEED, ANALYTICS }
 
 @Composable
 fun InsightsScreen(viewModel: InsightsViewModel) {
-    val state  by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
     val colors = LocalAppColors.current
-
     var selectedTab by remember { mutableStateOf(InsightsTab.FEED) }
 
     GlassBackground(modifier = Modifier.fillMaxSize()) {
@@ -200,14 +203,10 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                             .weight(1f)
                             .height(44.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (isSelected) colors.accentGreen.copy(alpha = 0.25f)
-                                else Color.Transparent
-                            )
+                            .background(if (isSelected) colors.accentGreen.copy(alpha = 0.25f) else Color.Transparent)
                             .border(
                                 width = if (isSelected) 1.dp else 0.dp,
-                                color = if (isSelected) colors.accentGreen.copy(alpha = 0.6f)
-                                else Color.Transparent,
+                                color = if (isSelected) colors.accentGreen.copy(alpha = 0.6f) else Color.Transparent,
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .clickable { selectedTab = tab },
@@ -226,13 +225,13 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
 
             Spacer(modifier = Modifier.height(16.dp))
             AnimatedContent(
-                targetState   = selectedTab,
+                targetState = selectedTab,
                 transitionSpec = { fadeIn(tween(250)).togetherWith(fadeOut(tween(200))) },
-                modifier      = Modifier.fillMaxSize(),
-                label         = "insightsTab"
+                modifier = Modifier.fillMaxSize(),
+                label = "insightsTab"
             ) { tab ->
                 when (tab) {
-                    InsightsTab.FEED      -> FeedContent(state = state)
+                    InsightsTab.FEED -> FeedContent(state = state)
                     InsightsTab.ANALYTICS -> AnalyticsContent(state = state)
                 }
             }
@@ -243,13 +242,12 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
 @Composable
 private fun FeedContent(state: InsightsUiState) {
     val colors = LocalAppColors.current
-    val cards  = remember(state) { buildFeedCards(state) }
-
+    val cards = remember(state) { buildFeedCards(state) }
     var currentIndex by remember(cards) { mutableIntStateOf(0) }
-    var finished     by remember(cards) { mutableStateOf(false) }
+    var finished by remember(cards) { mutableStateOf(false) }
 
     Column(
-        modifier            = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (!finished) {
@@ -264,10 +262,7 @@ private fun FeedContent(state: InsightsUiState) {
                         modifier = Modifier
                             .size(if (idx == currentIndex) 20.dp else 7.dp, 7.dp)
                             .clip(RoundedCornerShape(50))
-                            .background(
-                                if (idx <= currentIndex) colors.accentGreen
-                                else colors.glassWhite15
-                            )
+                            .background(if (idx <= currentIndex) colors.accentGreen else colors.glassWhite15)
                     )
                 }
             }
@@ -285,19 +280,13 @@ private fun FeedContent(state: InsightsUiState) {
                     modifier = Modifier
                         .size(88.dp)
                         .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.6f))
-                            )
-                        ),
+                        .background(Brush.linearGradient(listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.6f)))),
                     contentAlignment = Alignment.Center
                 ) { Text("🎉", fontSize = 40.sp) }
-
                 Text(
                     "All cards explored!",
                     style = MaterialTheme.typography.headlineMedium.copy(
-                        color = colors.textPrimary, fontWeight = FontWeight.Light,
-                        textAlign = TextAlign.Center
+                        color = colors.textPrimary, fontWeight = FontWeight.Light, textAlign = TextAlign.Center
                     ),
                     textAlign = TextAlign.Center
                 )
@@ -307,7 +296,7 @@ private fun FeedContent(state: InsightsUiState) {
                         color = colors.textSecondary, textAlign = TextAlign.Center, lineHeight = 22.sp
                     ),
                     textAlign = TextAlign.Center,
-                    modifier  = Modifier.padding(horizontal = 12.dp)
+                    modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(
@@ -315,19 +304,14 @@ private fun FeedContent(state: InsightsUiState) {
                         .fillMaxWidth()
                         .height(52.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Brush.linearGradient(
-                                listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.7f))
-                            )
-                        )
+                        .background(Brush.linearGradient(listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.7f))))
                         .clickable { currentIndex = 0; finished = false },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         "🔄  Start Over",
                         style = MaterialTheme.typography.titleMedium.copy(
-                            color = if (colors.isDark) Color.Black else Color.White,
-                            fontWeight = FontWeight.Medium
+                            color = if (colors.isDark) Color.Black else Color.White, fontWeight = FontWeight.Medium
                         )
                     )
                 }
@@ -335,9 +319,7 @@ private fun FeedContent(state: InsightsUiState) {
             Spacer(modifier = Modifier.weight(1f))
         } else {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 contentAlignment = Alignment.Center
             ) {
                 val preview = minOf(2, cards.size - currentIndex - 1)
@@ -353,22 +335,17 @@ private fun FeedContent(state: InsightsUiState) {
                             .zIndex((2 - i).toFloat())
                     )
                 }
-
                 SwipeCard(
-                    card   = cards[currentIndex],
-                    onSwipe = {
-                        if (currentIndex < cards.size - 1) currentIndex++
-                        else finished = true
-                    }
+                    card = cards[currentIndex],
+                    onSwipe = { if (currentIndex < cards.size - 1) currentIndex++ else finished = true }
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 horizontalArrangement = Arrangement.Center,
-                verticalAlignment     = Alignment.CenterVertically,
-                modifier              = Modifier.fillMaxWidth()
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("👈 swipe", style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary))
                 Spacer(modifier = Modifier.width(16.dp))
@@ -378,10 +355,7 @@ private fun FeedContent(state: InsightsUiState) {
                         .clip(CircleShape)
                         .background(colors.accentGreen.copy(alpha = 0.15f))
                         .border(1.dp, colors.accentGreen.copy(alpha = 0.4f), CircleShape)
-                        .clickable {
-                            if (currentIndex < cards.size - 1) currentIndex++
-                            else finished = true
-                        },
+                        .clickable { if (currentIndex < cards.size - 1) currentIndex++ else finished = true },
                     contentAlignment = Alignment.Center
                 ) { Text("→", fontSize = 18.sp, color = colors.accentGreen) }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -395,33 +369,28 @@ private fun FeedContent(state: InsightsUiState) {
 @Composable
 private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
     val colors = LocalAppColors.current
-
-    var offsetX    by remember { mutableFloatStateOf(0f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
 
     val animOffsetX by animateFloatAsState(
-        targetValue   = if (isDragging) offsetX else 0f,
-        animationSpec = if (isDragging) tween(0) else spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness    = Spring.StiffnessMediumLow
-        ),
+        targetValue = if (isDragging) offsetX else 0f,
+        animationSpec = if (isDragging) tween(0) else spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
         label = "swipeX"
     )
-
     val rotation = (animOffsetX / 28f).coerceIn(-14f, 14f)
     val likeAlpha = (animOffsetX / 180f).coerceIn(0f, 1f)
     val skipAlpha = (-animOffsetX / 180f).coerceIn(0f, 1f)
 
     val tagColor = when (card.type) {
-        FeedCardType.USEFUL  -> colors.accentGreen
-        FeedCardType.FUN     -> Color(0xFFF59E0B)
-        FeedCardType.TIP     -> colors.accentBlue
+        FeedCardType.USEFUL -> colors.accentGreen
+        FeedCardType.FUN -> Color(0xFFF59E0B)
+        FeedCardType.TIP -> colors.accentBlue
         FeedCardType.NEUTRAL -> colors.textSecondary
     }
     val cardGradient = when (card.type) {
-        FeedCardType.USEFUL  -> Brush.verticalGradient(listOf(colors.accentGreen.copy(alpha = 0.14f), colors.glassWhite10))
-        FeedCardType.FUN     -> Brush.verticalGradient(listOf(Color(0xFFF59E0B).copy(alpha = 0.14f), colors.glassWhite10))
-        FeedCardType.TIP     -> Brush.verticalGradient(listOf(colors.accentBlue.copy(alpha = 0.14f), colors.glassWhite10))
+        FeedCardType.USEFUL -> Brush.verticalGradient(listOf(colors.accentGreen.copy(alpha = 0.14f), colors.glassWhite10))
+        FeedCardType.FUN -> Brush.verticalGradient(listOf(Color(0xFFF59E0B).copy(alpha = 0.14f), colors.glassWhite10))
+        FeedCardType.TIP -> Brush.verticalGradient(listOf(colors.accentBlue.copy(alpha = 0.14f), colors.glassWhite10))
         FeedCardType.NEUTRAL -> Brush.verticalGradient(listOf(colors.glassWhite15, colors.glassWhite10))
     }
 
@@ -434,14 +403,14 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
             .zIndex(10f)
             .pointerInput(card) {
                 detectDragGestures(
-                    onDragStart  = { isDragging = true },
-                    onDragEnd    = {
+                    onDragStart = { isDragging = true },
+                    onDragEnd = {
                         isDragging = false
                         if (abs(offsetX) > 110f) { offsetX = 0f; onSwipe() }
                         else offsetX = 0f
                     },
                     onDragCancel = { isDragging = false; offsetX = 0f },
-                    onDrag       = { change, drag -> change.consume(); offsetX += drag.x }
+                    onDrag = { change, drag -> change.consume(); offsetX += drag.x }
                 )
             }
             .clip(RoundedCornerShape(28.dp))
@@ -455,9 +424,7 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
                 .background(colors.accentGreen.copy(alpha = likeAlpha * 0.85f))
                 .padding(horizontal = 10.dp, vertical = 5.dp)
         ) {
-            Text("GOT IT ✓",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    color = Color.White.copy(alpha = likeAlpha), fontWeight = FontWeight.Bold))
+            Text("GOT IT ✓", style = MaterialTheme.typography.labelMedium.copy(color = Color.White.copy(alpha = likeAlpha), fontWeight = FontWeight.Bold))
         }
         Box(
             modifier = Modifier
@@ -466,13 +433,11 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
                 .background(colors.textTertiary.copy(alpha = skipAlpha * 0.7f))
                 .padding(horizontal = 10.dp, vertical = 5.dp)
         ) {
-            Text("SKIP →",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    color = Color.White.copy(alpha = skipAlpha), fontWeight = FontWeight.Bold))
+            Text("SKIP →", style = MaterialTheme.typography.labelMedium.copy(color = Color.White.copy(alpha = skipAlpha), fontWeight = FontWeight.Bold))
         }
 
         Column(
-            modifier            = Modifier.fillMaxSize().padding(28.dp),
+            modifier = Modifier.fillMaxSize().padding(28.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -483,39 +448,14 @@ private fun SwipeCard(card: FeedCard, onSwipe: () -> Unit) {
                     .border(1.dp, tagColor.copy(alpha = 0.4f), RoundedCornerShape(50))
                     .padding(horizontal = 12.dp, vertical = 5.dp)
             ) {
-                Text(card.tag,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = tagColor, fontWeight = FontWeight.SemiBold))
+                Text(card.tag, style = MaterialTheme.typography.labelSmall.copy(color = tagColor, fontWeight = FontWeight.SemiBold))
             }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(card.emoji, fontSize = 56.sp, textAlign = TextAlign.Center)
-                Text(
-                    card.title,
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        color = colors.textPrimary, fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center
-                    ),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    card.body,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = colors.textSecondary, textAlign = TextAlign.Center, lineHeight = 22.sp
-                    ),
-                    textAlign = TextAlign.Center
-                )
+                Text(card.title, style = MaterialTheme.typography.headlineSmall.copy(color = colors.textPrimary, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center), textAlign = TextAlign.Center)
+                Text(card.body, style = MaterialTheme.typography.bodyMedium.copy(color = colors.textSecondary, textAlign = TextAlign.Center, lineHeight = 22.sp), textAlign = TextAlign.Center)
             }
-
-            Text(
-                "← swipe either way →",
-                style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary),
-                textAlign = TextAlign.Center,
-                modifier  = Modifier.fillMaxWidth()
-            )
+            Text("← swipe either way →", style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -525,9 +465,7 @@ private fun AnalyticsContent(state: InsightsUiState) {
     val colors = LocalAppColors.current
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         if (!state.hasData) {
@@ -541,23 +479,27 @@ private fun AnalyticsContent(state: InsightsUiState) {
                 )
             }
         } else {
-            InsightCard(
-                emoji = "📅",
-                title = "This Month",
-                body  = "You've spent ₹${"%.2f".format(state.monthlyTotal)} so far this month."
-            )
+            InsightCard(emoji = "📅", title = "This Month", body = "You've spent ₹${"%.2f".format(state.monthlyTotal)} so far this month.")
+
+            if (state.frequentTransactionType.isNotEmpty()) {
+                InsightCard(
+                    emoji = if (state.frequentTransactionType == "Income") "💼" else "🛒",
+                    title = "Most Frequent Activity",
+                    body = "${state.frequentTransactionType} is your most common transaction type with ${state.frequentTypeCount} entries recorded."
+                )
+            }
 
             val weekChange = state.weeklyChangePercent
             val weekBody = when {
                 state.lastWeekTotal == 0.0 -> "No spending last week to compare."
                 weekChange > 0 -> "You spent ${abs(weekChange).roundToInt()}% more this week vs last week."
                 weekChange < 0 -> "You spent ${abs(weekChange).roundToInt()}% less this week vs last week. Great job!"
-                else           -> "Your spending matches last week."
+                else -> "Your spending matches last week."
             }
             InsightCard(
-                emoji     = if (weekChange > 0) "📈" else "📉",
-                title     = "Weekly Comparison",
-                body      = weekBody,
+                emoji = if (weekChange > 0) "📈" else "📉",
+                title = "Weekly Comparison",
+                body = weekBody,
                 highlight = if (weekChange > 10) colors.accentRed else if (weekChange < 0) colors.accentGreen else null
             )
 
@@ -565,18 +507,13 @@ private fun AnalyticsContent(state: InsightsUiState) {
                 InsightCard(
                     emoji = "🏷️",
                     title = "Top Category",
-                    body  = "${state.topCategory} is your biggest expense at ₹${"%.2f".format(state.topCategoryAmount)}."
+                    body = "${state.topCategory} is your biggest expense at ₹${"%.2f".format(state.topCategoryAmount)}."
                 )
             }
 
             SpendingBarChart(thisWeek = state.thisWeekTotal, lastWeek = state.lastWeekTotal)
-
-            if (state.categoryTotals.isNotEmpty()) {
-                CategoryBarChart(categoryTotals = state.categoryTotals)
-            }
-
+            if (state.categoryTotals.isNotEmpty()) CategoryBarChart(categoryTotals = state.categoryTotals)
             SpendingHeatmap(daySpending = state.last35DaySpending)
-
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
@@ -586,56 +523,25 @@ private fun AnalyticsContent(state: InsightsUiState) {
 private fun SpendingBarChart(thisWeek: Double, lastWeek: Double) {
     val colors = LocalAppColors.current
     val maxVal = maxOf(thisWeek, lastWeek, 1.0)
-    val animProgress by animateFloatAsState(
-        targetValue   = 1f,
-        animationSpec = tween(900, easing = EaseOutCubic),
-        label         = "barAnim"
-    )
+    val animProgress by animateFloatAsState(targetValue = 1f, animationSpec = tween(900, easing = EaseOutCubic), label = "barAnim")
     GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
-        Text("📊  Weekly Spending",
-            style = MaterialTheme.typography.labelMedium.copy(
-                color = colors.textSecondary, letterSpacing = 0.5.sp))
+        Text("📊  Weekly Spending", style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary, letterSpacing = 0.5.sp))
         Spacer(modifier = Modifier.height(20.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment     = Alignment.Bottom
-        ) {
-            BarColumn(
-                label    = "Last Week",
-                value    = lastWeek,
-                fraction = (lastWeek / maxVal * animProgress).toFloat(),
-                barColor = Brush.verticalGradient(listOf(colors.accentBlue.copy(alpha = 0.6f), colors.accentBlue.copy(alpha = 0.2f))),
-                textColor = colors.textSecondary
-            )
-            BarColumn(
-                label    = "This Week",
-                value    = thisWeek,
-                fraction = (thisWeek / maxVal * animProgress).toFloat(),
-                barColor = Brush.verticalGradient(listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.3f))),
-                textColor = colors.accentGreen
-            )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
+            BarColumn(label = "Last Week", value = lastWeek, fraction = (lastWeek / maxVal * animProgress).toFloat(), barColor = Brush.verticalGradient(listOf(colors.accentBlue.copy(alpha = 0.6f), colors.accentBlue.copy(alpha = 0.2f))), textColor = colors.textSecondary)
+            BarColumn(label = "This Week", value = thisWeek, fraction = (thisWeek / maxVal * animProgress).toFloat(), barColor = Brush.verticalGradient(listOf(colors.accentGreen, colors.accentGreen.copy(alpha = 0.3f))), textColor = colors.accentGreen)
         }
     }
 }
 
 @Composable
-private fun RowScope.BarColumn(
-    label: String, value: Double, fraction: Float, barColor: Brush, textColor: Color
-) {
+private fun RowScope.BarColumn(label: String, value: Double, fraction: Float, barColor: Brush, textColor: Color) {
     val maxBarHeight = 120.dp
     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("₹${"%.0f".format(value)}",
-            style = MaterialTheme.typography.bodySmall.copy(color = textColor, fontWeight = FontWeight.SemiBold))
+        Text("₹${"%.0f".format(value)}", style = MaterialTheme.typography.bodySmall.copy(color = textColor, fontWeight = FontWeight.SemiBold))
         Spacer(modifier = Modifier.height(4.dp))
         Box(modifier = Modifier.height(maxBarHeight), contentAlignment = Alignment.BottomCenter) {
-            Box(
-                modifier = Modifier
-                    .width(48.dp)
-                    .fillMaxHeight(fraction.coerceAtLeast(0.04f))
-                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(barColor)
-            )
+            Box(modifier = Modifier.width(48.dp).fillMaxHeight(fraction.coerceAtLeast(0.04f)).clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)).background(barColor))
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(label, style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF98FF98)))
@@ -646,27 +552,17 @@ private fun RowScope.BarColumn(
 private fun CategoryBarChart(categoryTotals: Map<String, Double>) {
     val colors = LocalAppColors.current
     val maxVal = categoryTotals.values.maxOrNull() ?: 1.0
-    val animProgress by animateFloatAsState(
-        targetValue   = 1f,
-        animationSpec = tween(1000, delayMillis = 100, easing = EaseOutCubic),
-        label         = "catAnim"
-    )
+    val animProgress by animateFloatAsState(targetValue = 1f, animationSpec = tween(1000, delayMillis = 100, easing = EaseOutCubic), label = "catAnim")
     GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
-        Text("🏷️  By Category (this month)",
-            style = MaterialTheme.typography.labelMedium.copy(
-                color = colors.textSecondary, letterSpacing = 0.5.sp))
+        Text("🏷️  By Category (this month)", style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary, letterSpacing = 0.5.sp))
         Spacer(modifier = Modifier.height(16.dp))
-        val catColors = listOf(
-            colors.accentBlue, colors.accentGreen, colors.accentRed,
-            Color(0xFFF59E0B), Color(0xFF8B5CF6), Color(0xFFEC4899)
-        )
+        val catColors = listOf(colors.accentBlue, colors.accentGreen, colors.accentRed, Color(0xFFF59E0B), Color(0xFF8B5CF6), Color(0xFFEC4899))
         categoryTotals.entries.take(6).forEachIndexed { idx, (cat, amount) ->
             val fraction = (amount / maxVal * animProgress).toFloat().coerceAtLeast(0.02f)
             Column(modifier = Modifier.padding(vertical = 4.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(cat, style = MaterialTheme.typography.bodySmall.copy(color = colors.textPrimary))
-                    Text("₹${"%.0f".format(amount)}", style = MaterialTheme.typography.bodySmall.copy(
-                        color = catColors[idx % catColors.size], fontWeight = FontWeight.SemiBold))
+                    Text("₹${"%.0f".format(amount)}", style = MaterialTheme.typography.bodySmall.copy(color = catColors[idx % catColors.size], fontWeight = FontWeight.SemiBold))
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Box(modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(50)).background(colors.glassWhite10)) {
@@ -679,42 +575,34 @@ private fun CategoryBarChart(categoryTotals: Map<String, Double>) {
 
 @Composable
 private fun SpendingHeatmap(daySpending: List<Pair<String, Double>>) {
-    val colors   = LocalAppColors.current
+    val colors = LocalAppColors.current
     val maxSpend = daySpending.maxOfOrNull { it.second } ?: 1.0
-    val animProgress by animateFloatAsState(
-        targetValue = 1f, animationSpec = tween(700, delayMillis = 200), label = "heatAnim")
+    val animProgress by animateFloatAsState(targetValue = 1f, animationSpec = tween(700, delayMillis = 200), label = "heatAnim")
 
     GlassCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 20.dp) {
-        Text("🗓  Daily Spending (last 35 days)",
-            style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary, letterSpacing = 0.5.sp))
+        Text("🗓  Daily Spending (last 35 days)", style = MaterialTheme.typography.labelMedium.copy(color = colors.textSecondary, letterSpacing = 0.5.sp))
         Spacer(modifier = Modifier.height(12.dp))
-        val rows      = daySpending.chunked(7)
+        val rows = daySpending.chunked(7)
         val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             dayLabels.forEach { d ->
-                Text(d, style = MaterialTheme.typography.labelSmall.copy(
-                    color = colors.textTertiary, fontSize = 9.sp),
-                    modifier  = Modifier.width(34.dp),
-                    textAlign = TextAlign.Center)
+                Text(d, style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary, fontSize = 9.sp), modifier = Modifier.width(34.dp), textAlign = TextAlign.Center)
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
         rows.forEach { week ->
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 val padded = week + List(7 - week.size) { Pair("", 0.0) }
                 padded.forEach { (_, amt) ->
                     val intensity = if (maxSpend > 0) (amt / maxSpend * animProgress).toFloat() else 0f
                     val cellColor = when {
-                        amt <= 0        -> colors.glassWhite10
+                        amt <= 0 -> colors.glassWhite10
                         intensity < 0.25f -> colors.accentGreen.copy(alpha = 0.25f)
                         intensity < 0.50f -> colors.accentGreen.copy(alpha = 0.50f)
                         intensity < 0.75f -> colors.accentGreen.copy(alpha = 0.75f)
-                        else              -> colors.accentGreen
+                        else -> colors.accentGreen
                     }
-                    Box(modifier = Modifier.size(width = 34.dp, height = 26.dp)
-                        .clip(RoundedCornerShape(5.dp)).background(cellColor)
-                        .border(0.5.dp, colors.glassBorder, RoundedCornerShape(5.dp)))
+                    Box(modifier = Modifier.size(width = 34.dp, height = 26.dp).clip(RoundedCornerShape(5.dp)).background(cellColor).border(0.5.dp, colors.glassBorder, RoundedCornerShape(5.dp)))
                 }
             }
         }
@@ -723,8 +611,7 @@ private fun SpendingHeatmap(daySpending: List<Pair<String, Double>>) {
             Text("Less", style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary, fontSize = 9.sp))
             Spacer(modifier = Modifier.width(6.dp))
             listOf(0.1f, 0.35f, 0.6f, 0.85f, 1.0f).forEach { alpha ->
-                Box(modifier = Modifier.padding(horizontal = 2.dp).size(14.dp).clip(RoundedCornerShape(3.dp))
-                    .background(if (alpha < 0.15f) colors.glassWhite10 else colors.accentGreen.copy(alpha = alpha)))
+                Box(modifier = Modifier.padding(horizontal = 2.dp).size(14.dp).clip(RoundedCornerShape(3.dp)).background(if (alpha < 0.15f) colors.glassWhite10 else colors.accentGreen.copy(alpha = alpha)))
             }
             Spacer(modifier = Modifier.width(6.dp))
             Text("More", style = MaterialTheme.typography.labelSmall.copy(color = colors.textTertiary, fontSize = 9.sp))
@@ -740,11 +627,9 @@ private fun InsightCard(emoji: String, title: String, body: String, highlight: C
             Text(emoji, fontSize = 22.sp)
             Spacer(modifier = Modifier.width(12.dp))
             Column {
-                Text(title, style = MaterialTheme.typography.labelMedium.copy(
-                    color = highlight ?: colors.textSecondary, letterSpacing = 0.5.sp))
+                Text(title, style = MaterialTheme.typography.labelMedium.copy(color = highlight ?: colors.textSecondary, letterSpacing = 0.5.sp))
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(body, style = MaterialTheme.typography.bodyMedium.copy(
-                    color = colors.textPrimary, fontWeight = FontWeight.Normal))
+                Text(body, style = MaterialTheme.typography.bodyMedium.copy(color = colors.textPrimary, fontWeight = FontWeight.Normal))
             }
         }
     }

@@ -40,31 +40,46 @@ class GoalViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = GoalUiState()
     )
+
     fun evaluateStreakForToday() {
         viewModelScope.launch {
             val todayStr = dateFormat.format(Date())
             val lastChecked = goalRepository.lastCheckedDate.first()
-
             if (lastChecked == todayStr) return@launch
 
             val limit = goalRepository.dailyLimit.first()
             if (limit <= 0.0) return@launch
 
             val transactions = transactionRepository.getAllTransactions().first()
-            val yesterdayStr = dateFormat.format(
-                Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }.time
-            )
-            val yesterdaySpent = transactions.filter { tx ->
-                tx.type == TransactionType.EXPENSE &&
-                        dateFormat.format(Date(tx.date)) == yesterdayStr
-            }.sumOf { it.amount }
 
-            val currentStreak = goalRepository.streakCount.first()
-            val newStreak = if (yesterdaySpent <= limit) currentStreak + 1 else 0
+            val dailySpendMap = transactions
+                .filter { it.type == TransactionType.EXPENSE }
+                .groupBy { dateFormat.format(Date(it.date)) }
+                .mapValues { (_, txs) -> txs.sumOf { it.amount } }
+
+            val newStreak = computeCurrentStreak(limit, dailySpendMap, todayStr)
 
             goalRepository.setStreakCount(newStreak)
             goalRepository.setLastCheckedDate(todayStr)
         }
+    }
+
+    private fun computeCurrentStreak(limit: Double, dailySpend: Map<String, Double>, todayStr: String): Int {
+        var streak = 0
+        var daysBack = 1
+        while (true) {
+            val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -daysBack) }
+            val dayStr = dateFormat.format(cal.time)
+            val spent = dailySpend[dayStr] ?: 0.0
+            if (spent <= limit) {
+                streak++
+                daysBack++
+                if (daysBack > 365) break
+            } else {
+                break
+            }
+        }
+        return streak
     }
 
     fun setDailyLimit(limit: Double) {

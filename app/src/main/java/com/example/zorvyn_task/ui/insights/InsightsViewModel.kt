@@ -17,7 +17,7 @@ class InsightsViewModel(
         .getAllTransactions()
         .map { transactions ->
             val expenses = transactions.filter { it.type == TransactionType.EXPENSE }
-            if (expenses.isEmpty()) return@map InsightsUiState()
+            if (transactions.isEmpty()) return@map InsightsUiState()
 
             val thisWeekStart = Calendar.getInstance().apply {
                 set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
@@ -39,9 +39,9 @@ class InsightsViewModel(
                 set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
             }.timeInMillis
 
-            val thisWeekTotal  = expenses.filter { it.date >= thisWeekStart }.sumOf { it.amount }
-            val lastWeekTotal  = expenses.filter { it.date in lastWeekStart..lastWeekEnd }.sumOf { it.amount }
-            val monthlyTotal   = expenses.filter { it.date >= monthStart }.sumOf { it.amount }
+            val thisWeekTotal = expenses.filter { it.date >= thisWeekStart }.sumOf { it.amount }
+            val lastWeekTotal = expenses.filter { it.date in lastWeekStart..lastWeekEnd }.sumOf { it.amount }
+            val monthlyTotal = expenses.filter { it.date >= monthStart }.sumOf { it.amount }
 
             val topCategoryEntry = expenses
                 .filter { it.date >= monthStart }
@@ -60,7 +60,11 @@ class InsightsViewModel(
                 ((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100
             else 0.0
 
-            // Last 35 days heatmap
+            val incomeCount = transactions.filter { it.type == TransactionType.INCOME }.size
+            val expenseCount = expenses.size
+            val frequentType = if (incomeCount >= expenseCount) "Income" else "Expense"
+            val frequentCount = if (incomeCount >= expenseCount) incomeCount else expenseCount
+
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val labelFmt = SimpleDateFormat("EEE dd", Locale.getDefault())
             val dayMap = expenses.groupBy { sdf.format(Date(it.date)) }
@@ -68,25 +72,27 @@ class InsightsViewModel(
 
             val last35 = (34 downTo 0).map { daysBack ->
                 val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -daysBack) }
-                val key   = sdf.format(cal.time)
+                val key = sdf.format(cal.time)
                 val label = labelFmt.format(cal.time)
                 Pair(label, dayMap[key] ?: 0.0)
             }
 
             InsightsUiState(
-                topCategory          = topCategoryEntry?.key ?: "",
-                topCategoryAmount    = topCategoryEntry?.value ?: 0.0,
-                thisWeekTotal        = thisWeekTotal,
-                lastWeekTotal        = lastWeekTotal,
-                monthlyTotal         = monthlyTotal,
-                weeklyChangePercent  = weeklyChangePercent,
-                categoryTotals       = categoryTotals,
-                last35DaySpending    = last35,
-                hasData              = true
+                topCategory = topCategoryEntry?.key ?: "",
+                topCategoryAmount = topCategoryEntry?.value ?: 0.0,
+                frequentTransactionType = frequentType,
+                frequentTypeCount = frequentCount,
+                thisWeekTotal = thisWeekTotal,
+                lastWeekTotal = lastWeekTotal,
+                monthlyTotal = monthlyTotal,
+                weeklyChangePercent = weeklyChangePercent,
+                categoryTotals = categoryTotals,
+                last35DaySpending = last35,
+                hasData = true
             )
         }
         .stateIn(
-            scope   = viewModelScope,
+            scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = InsightsUiState()
         )
