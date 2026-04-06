@@ -9,6 +9,13 @@ A clean, minimal Android finance app built with Jetpack Compose. Zorvyn helps yo
 - View your total balance, total income, and total expense at a glance
 - Add past transactions for historical data entry
 
+**Transaction Management**
+- Swipe left on any transaction to reveal the **Edit** button — tap to update amount, type, category, note, or date
+- Swipe right on any transaction to reveal the **Delete** button — tap to confirm and remove
+- Search transactions by category or note with a live search bar
+- Filter transactions by All, Income, or Expense
+- Full transaction history with result count
+
 **Daily Goal & Streak**
 - Set a daily spending limit
 - Track how many consecutive days you've stayed within budget
@@ -20,7 +27,7 @@ A clean, minimal Android finance app built with Jetpack Compose. Zorvyn helps yo
 
 **Security**
 - PIN-based authentication on app open (4-digit, SHA-256 hashed)
-- All data lives on-device — nothing leaves your phone
+- All data lives on-device nothing leaves your phone
 
 **Theming**
 - Dark mode (black + vivid mint green)
@@ -118,7 +125,8 @@ app/src/main/java/com/example/zorvyn_task/
     │   └── InsightsUiState.kt
     │
     ├── profile/
-    │   ├── ProfileScreen.kt         # User stats, theme toggle, add past tx, reset
+    │   ├── ProfileScreen.kt         # User stats, theme toggle, transaction history,
+    │   │                            # swipe-to-edit/delete, add past tx, reset
     │   └── ProfileViewModel.kt
     │
     ├── navigation/
@@ -159,6 +167,18 @@ Room DAO / DataStore
 Each screen has its own `ViewModel` with a corresponding `UiState` data class. The `ViewModel` exposes a single `StateFlow<UiState>` that the composable collects. User actions call methods on the `ViewModel`, which update the state — the UI never mutates state directly.
 
 The theme system uses a custom `AppColors` data class distributed via `CompositionLocal`, giving every composable type-safe access to the correct color tokens for the active theme without relying on `MaterialTheme.colorScheme` indirection.
+
+---
+
+## Transaction Edit & Delete
+
+Transactions in the Profile screen support gesture-based actions:
+
+- **Swipe left** → green Edit button slides in from the right. Tap it to open the edit dialog where you can change the amount, type, category, note, and date.
+- **Swipe right** → red Delete button slides in from the left. Tap it to open a confirmation dialog before permanently removing the transaction.
+- **Tap the card while swiped** → snaps it back to rest position.
+
+The action buttons are hidden completely at rest — they only appear once the card has been dragged past a threshold, so the list looks clean by default.
 
 ---
 
@@ -205,16 +225,3 @@ No internet, location, camera, or contacts permissions are requested.
 
 ---
 
-## Contributing
-
-Pull requests are welcome. For significant changes, please open an issue first to discuss what you'd like to change.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m 'Add your feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
-
-Please make sure your code follows the existing MVVM structure and that new screens expose their state via a `StateFlow<UiState>`.
-
----
